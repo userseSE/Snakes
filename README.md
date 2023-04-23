@@ -1,2 +1,0 @@
-# Snakes
-Snakes with ECS
