@@ -23,3 +23,6 @@ You need to install CMake and set the system path for the exe.
 The visual studio code is a good editor to write code. C++ CMake and CMake Tools extensions are needed for CMake project environment. 
 
 On Windows, you need to install the Ninjia build system for CMake Tools extension.
+
+Steps:
+1. build a cmake project and import flecs.
