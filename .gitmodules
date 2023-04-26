@@ -1,3 +1,12 @@
 [submodule "thirdparty/flecs"]
 	path = thirdparty/flecs
 	url = https://github.com/SanderMertens/flecs.git
+[submodule "thirdparty/FlecsRaylib"]
+	path = thirdparty/FlecsRaylib
+	url = https://github.com/Lexxicon/FlecsRaylib/
+[submodule "thirdparty/raylib"]
+	path = thirdparty/raylib
+	url = https://github.com/raysan5/raylib
+[submodule "thirdparty/raylib-cpp"]
+	path = thirdparty/raylib-cpp
+	url = https://github.com/RobLoach/raylib-cpp.git
