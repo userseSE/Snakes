@@ -14,7 +14,7 @@ endif()
 
 
 aux_source_directory(${PROJECT_SOURCE_DIR}/src/ source_files)
-
+add_subdirectory(thirdparty/flecs EXCLUDE_FROM_ALL)
 
 add_executable(test   ${source_files})
 
@@ -23,7 +23,7 @@ target_include_directories(
     PUBLIC
     ${PROJECT_SOURCE_DIR}/include/
  )
-target_link_libraries(test PRIVATE)
+target_link_libraries(test PRIVATE flecs::flecs_static)
 install (TARGETS test DESTINATION bin)
 
 
