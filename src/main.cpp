@@ -7,7 +7,7 @@
 #include "raylib-cpp.hpp"
 #include "raylib.h"
 
-void extracted(flecs::world &ecs, TileMap &tilemap, flecs::entity &entity_ref,
+void draw_line(flecs::world &ecs, TileMap &tilemap, flecs::entity &entity_ref,
                TileMapStorage *&storage) {
   for (int i = 0; i < tilemap.height; i++) {
     auto [x, y] = std::make_tuple(0, i);
@@ -25,7 +25,7 @@ void setup(flecs::world &ecs) {
   auto entity = a.spawn(ecs);
   auto entity_ref = ecs.entity(entity);
   auto storage = entity_ref.get_mut<TileMapStorage>();
-  extracted(ecs, tilemap, entity_ref, storage);
+  draw_line(ecs, tilemap, entity_ref, storage);
   for (int i = 0; i < tilemap.width; i++) {
     auto [x, y] = std::make_tuple(i, 0);
     TileBundle b = TileBundle{TileType{TileType::WALL}, TilePos{x, y}};
