@@ -2,6 +2,7 @@
 #include "Rectangle.hpp"
 #include "flecs.h"
 #include "flecs/addons/cpp/mixins/pipeline/decl.hpp"
+#include "input.hpp"
 #include "map.hpp"
 #include "raylib-cpp.hpp"
 #include "raylib.h"
@@ -75,19 +76,28 @@ int main(int argc, char *argv[]) {
           draw_rects);
   IntoSystemBuilder builder(init_snake_bodies);
   IntoSystemBuilder builder2(init_snake_graphic);
+  IntoSystemBuilder move_snake_system(move_snake);
+  IntoSystemBuilder update_render_snake_system(update_render_snake);
   auto snake_system = builder.build(ecs);
   auto snake_system2 = builder2.build(ecs);
+  auto snake_system3 = move_snake_system.build(ecs);
+  auto snake_system4 = update_render_snake_system.build(ecs);
 
+  snake_system3.interval(1);
+  snake_system3.depends_on(flecs::PreUpdate);
+  snake_system4.depends_on(flecs::PostUpdate);
   int screenWidth = 1600;
   int screenHeight = 900;
   raylib::Color textColor = raylib::Color::LightGray();
   raylib::Window window(screenWidth, screenHeight, "贪吃蛇");
-  ecs.entity().set<SnakeSpawn>(
-      SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2} ,TilePos{1, 1}}});
+  ecs.entity()
+      .set<SnakeSpawn>(
+          SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
+      .set<Direction>(Direction::DOWN);
   snake_system.depends_on(flecs::OnStart);
-  snake_system2.depends_on(flecs::OnStart);
+
   system.depends_on(flecs::OnStart);
- 
+
   SetTargetFPS(60);
   //--------------------------------------------------------------------------------------
 
@@ -95,7 +105,7 @@ int main(int argc, char *argv[]) {
   while (!window.ShouldClose()) { // Detect window close button or ESC key
     // Update (ECS世界以每秒60次的速率更新)
     // ecs.progress(1.0/60);
-    ecs.progress();
+
     //----------------------------------------------------------------------------------
     // Update your variables here
     //----------------------------------------------------------------------------------
@@ -104,7 +114,7 @@ int main(int argc, char *argv[]) {
     BeginDrawing();
 
     { window.ClearBackground(RAYWHITE); }
-    draw_rect.run();
+    ecs.progress();
     EndDrawing();
     //----------------------------------------------------------------------------------
   }

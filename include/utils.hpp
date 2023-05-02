@@ -1,10 +1,12 @@
 #include "bundle.hpp"
 #include "flecs/addons/cpp/c_types.hpp"
+#include "input.hpp"
 #include "map.hpp"
+
 template <class F>
 inline void draw_line_with_func(flecs::world &ecs, flecs::entity &entity_ref,
-                         TileMapStorage &storage, const TilePos &start,
-                         const TilePos &end, F &&func) {
+                                TileMapStorage &storage, const TilePos &start,
+                                const TilePos &end, F &&func) {
   auto [start_x, start_y] = std::make_tuple(start.x, start.y);
   auto [end_x, end_y] = std::make_tuple(end.x, end.y);
   int dx = std::abs(end_x - start_x);
@@ -47,8 +49,8 @@ inline void draw_line_with_func(flecs::world &ecs, flecs::entity &entity_ref,
 }
 
 inline void draw_line(flecs::world &ecs, flecs::entity &entity_ref,
-               TileMapStorage &storage, const TilePos &start,
-               const TilePos &end) {
+                      TileMapStorage &storage, const TilePos &start,
+                      const TilePos &end) {
   auto [start_x, start_y] = std::make_tuple(start.x, start.y);
   auto [end_x, end_y] = std::make_tuple(end.x, end.y);
   int dx = std::abs(end_x - start_x);
@@ -83,5 +85,21 @@ inline void draw_line(flecs::world &ecs, flecs::entity &entity_ref,
       err += dx;
       y += sy;
     }
+  }
+}
+
+// 获取方向对应的二维向量
+inline std::pair<int, int> GetDirectionVector(Direction dir) {
+  switch (dir) {
+  case Direction::LEFT:
+    return {-1, 0};
+  case Direction::RIGHT:
+    return {1, 0};
+  case Direction::UP:
+    return {0, -1};
+  case Direction::DOWN:
+    return {0, 1};
+  default:
+    throw std::runtime_error("Invalid direction");
   }
 }
