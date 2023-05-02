@@ -1,4 +1,5 @@
 #include "bundle.hpp"
+#include "flecs/addons/cpp/c_types.hpp"
 #include "map.hpp"
 template <class F>
 inline void draw_line_with_func(flecs::world &ecs, flecs::entity &entity_ref,
@@ -19,6 +20,7 @@ inline void draw_line_with_func(flecs::world &ecs, flecs::entity &entity_ref,
 
     if (storage.get_tile(x, y).has_value()) {
       auto e = storage.get_tile(x, y).value();
+      ecs.entity(e).clear();
       ecs.entity(e).child_of(entity_ref);
       b.insert(ecs, e);
     } else {
