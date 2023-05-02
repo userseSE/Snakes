@@ -83,7 +83,7 @@ int main(int argc, char *argv[]) {
   auto snake_system3 = move_snake_system.build(ecs);
   auto snake_system4 = update_render_snake_system.build(ecs);
 
-  snake_system3.interval(1);
+  snake_system3.interval(0.1);
   snake_system3.depends_on(flecs::PreUpdate);
   snake_system4.depends_on(flecs::PostUpdate);
   int screenWidth = 1600;

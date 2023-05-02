@@ -1,3 +1,10 @@
+/**
+ * @file snake.hpp
+ * @brief Snake game implementation.
+ * 
+ * This file contains the implementation of the snake game using flecs and raylib.
+ */
+
 #include "snake.hpp"
 #include "Color.hpp"
 #include "Rectangle.hpp"
@@ -10,6 +17,13 @@
 
 using SnakeBodyBundle =
     basic::Bundle<SnakeBody, TilePos, TileSize, raylib::Color>;
+
+/**
+ * @brief Initialize snake bodies.
+ * 
+ * @param it Flecs iterator containing the entities with SnakeSpawn components.
+ * @param snakes Pointer to SnakeSpawn components.
+ */
 void init_snake_bodies(flecs::iter &it, SnakeSpawn *snakes) {
 
   auto snake = Snake{};
@@ -37,6 +51,16 @@ void init_snake_bodies(flecs::iter &it, SnakeSpawn *snakes) {
     it.entity(i).set(snake);
   }
 }
+
+/**
+ * @brief Initialize snake graphics.
+ * 
+ * @param it Flecs iterator containing the entities with SnakeBody components.
+ * @param snakes Pointer to SnakeBody components.
+ * @param pos Pointer to TilePos components.
+ * @param color Pointer to raylib::Color components.
+ * @param size Pointer to TileSize components.
+ */
 void init_snake_graphic(flecs::iter &it, SnakeBody *snakes, TilePos *pos,
                         raylib::Color *color, TileSize *size) {
 
@@ -58,6 +82,16 @@ void init_snake_graphic(flecs::iter &it, SnakeBody *snakes, TilePos *pos,
   }
 }
 
+/**
+ * @brief Update and render the snake.
+ * 
+ * @param it Flecs iterator containing the entities with SnakeBody components.
+ * @param snakes Pointer to SnakeBody components.
+ * @param pos Pointer to TilePos components.
+ * @param color Pointer to raylib::Color components.
+ * @param size Pointer to TileSize components.
+ * @param rects Pointer to raylib::Rectangle components.
+ */
 void update_render_snake(flecs::iter &it, SnakeBody *snakes, TilePos *pos,
                          raylib::Color *color, TileSize *size,
                          raylib::Rectangle *rects) {
@@ -77,6 +111,14 @@ void update_render_snake(flecs::iter &it, SnakeBody *snakes, TilePos *pos,
     rects[i].SetPosition(size[i].x * pos[i].x, size[i].y * pos[i].y);
   }
 }
+
+/**
+
+@brief Move the snake based on its current direction.
+@param it Flecs iterator containing the entities with Snake components.
+@param snakes Pointer to Snake components.
+@param dirs Pointer to Direction components.
+*/
 void move_snake(flecs::iter &it, Snake *snakes, Direction *dirs) {
 
   for (int i = 0; i < it.count(); i++) {
