@@ -81,6 +81,16 @@ namespace basic
             world.id(e).entity().emplace<decltype(a)>(std::move(a));
           });
     }
+    constexpr void insert(const flecs::world& world, flecs::entity_t e) const
+    {
+      constexpr size_t cnt = std::tuple_size_v<std::decay_t<Tuple>>;
+      constexpr_for<size_t(0), cnt, size_t(1)>(
+          [&](const auto i)
+          {
+            auto a = std::get<i>(tuple);
+            world.id(e).entity().emplace<decltype(a)>(std::move(a));
+          });
+    }
     template <typename... OtherComponents>
     constexpr auto merge(OtherComponents... otherComponents) const
     {
@@ -92,6 +102,13 @@ namespace basic
     }
 
     constexpr auto spawn(flecs::world& world) const
+    {
+      auto e = world.entity().id();
+      insert(world, e);
+      return e;
+    }
+
+    constexpr auto spawn(const flecs::world& world) const
     {
       auto e = world.entity().id();
       insert(world, e);
