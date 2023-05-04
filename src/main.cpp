@@ -1,6 +1,8 @@
+#include "food.hpp"
 #include "Color.hpp"
 #include "Rectangle.hpp"
 #include "flecs.h"
+#include "flecs/addons/cpp/c_types.hpp"
 #include "flecs/addons/cpp/mixins/pipeline/decl.hpp"
 #include "input.hpp"
 #include "map.hpp"
@@ -12,6 +14,9 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+#include <stdio.h>
+#include <iostream>
+
 
 void setup(flecs::world &ecs) {
   auto tilemap = TileMap{100, 100};
@@ -67,15 +72,15 @@ int main(int argc, char *argv[]) {
   //--------------------------------------------------------------------------------------
   // init world
   flecs::world ecs;
-  setup(ecs);
+  setup(ecs); // setup tilemap
   auto system =
       ecs.system<TilePos, TileType, const TileSize>().term_at(3).parent().iter(
-          init_color);
+          init_color);  // init color
   auto draw_rect =
       ecs.system<raylib::Rectangle, raylib::Color>().term_at(2).optional().iter(
-          draw_rects);
-  IntoSystemBuilder builder(init_snake_bodies);
-  IntoSystemBuilder builder2(init_snake_graphic);
+          draw_rects);  // draw rect
+  IntoSystemBuilder builder(init_snake_bodies); // init snake
+  IntoSystemBuilder builder2(init_snake_graphic); // init snake graphic
   IntoSystemBuilder move_snake_system(move_snake);
   IntoSystemBuilder update_render_snake_system(update_render_snake);
   auto snake_system = builder.build(ecs);
@@ -90,10 +95,25 @@ int main(int argc, char *argv[]) {
   int screenHeight = 900;
   raylib::Color textColor = raylib::Color::LightGray();
   raylib::Window window(screenWidth, screenHeight, "贪吃蛇");
+
+  TileMap tile_map{100, 100};
+  flecs::entity_t head = ecs.entity().set<TilePos>({1,3}).id();
+  flecs::entity_t body1 = ecs.entity().set<TilePos>({1,2}).id();
+  flecs::entity_t body2 = ecs.entity().set<TilePos>({1,1}).id();
+
+  std::deque<flecs::entity_t> body_parts={head, body1, body2};
+  Snake snake={body_parts};
+  ; 
+
   ecs.entity()
       .set<SnakeSpawn>(
           SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
-      .set<Direction>(Direction::DOWN);
+      .set<Direction>(Direction::DOWN)
+      .set<Food>(Food{TilePos{55, 55}})
+      .set<raylib::Rectangle>(raylib::Rectangle(3 * 8, 5 * 8, 8, 8)) // 设置矩形组件
+      .set<raylib::Color>(raylib::Color::Green()); // 设置颜色组件
+  //
+
   snake_system.depends_on(flecs::OnStart);
 
   system.depends_on(flecs::OnStart);
@@ -114,7 +134,11 @@ int main(int argc, char *argv[]) {
     BeginDrawing();
 
     { window.ClearBackground(RAYWHITE); }
+
+    //std::cout << "Before ecs.progress()" << std::endl;
     ecs.progress();
+    //std::cout << "After ecs.progress()" << std::endl;
+
     EndDrawing();
     //----------------------------------------------------------------------------------
   }

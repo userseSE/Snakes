@@ -9,7 +9,7 @@
 #include "Color.hpp"
 #include "Rectangle.hpp"
 #include "bundle.hpp"
-
+#include "food.hpp"
 #include "map.hpp"
 #include "utils.hpp"
 #include <algorithm>

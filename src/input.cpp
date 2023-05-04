@@ -1,5 +1,5 @@
 #include "input.hpp"
-
+    
 
     auto handle_input() -> std::optional<Direction>
     {
