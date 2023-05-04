@@ -27,6 +27,7 @@ void setup(flecs::world &ecs) {
   auto entity_ref = ecs.entity(entity);
   auto &storage = *entity_ref.get_mut<TileMapStorage>();
   auto wall_fill = [](flecs::entity &e) { e.set<TileType>(TileType::WALL); };
+
   draw_line_with_func(ecs, entity_ref, storage, TilePos{0, 0},
                       TilePos{0, tilemap.height}, wall_fill);
   draw_line_with_func(ecs, entity_ref, storage, TilePos{0, 0},
@@ -36,6 +37,7 @@ void setup(flecs::world &ecs) {
   draw_line_with_func(ecs, entity_ref, storage, TilePos{tilemap.width, 0},
                       TilePos{tilemap.width, tilemap.height}, wall_fill);
 }
+
 void init_color(flecs::iter &it, TilePos *pos, TileType *type,
                 const TileSize *tilesize) {
   it.world().defer_begin();
@@ -96,23 +98,21 @@ int main(int argc, char *argv[]) {
   raylib::Color textColor = raylib::Color::LightGray();
   raylib::Window window(screenWidth, screenHeight, "贪吃蛇");
 
-  TileMap tile_map{100, 100};
-  flecs::entity_t head = ecs.entity().set<TilePos>({1,3}).id();
-  flecs::entity_t body1 = ecs.entity().set<TilePos>({1,2}).id();
-  flecs::entity_t body2 = ecs.entity().set<TilePos>({1,1}).id();
-
-  std::deque<flecs::entity_t> body_parts={head, body1, body2};
-  Snake snake={body_parts};
-  ; 
-
   ecs.entity()
       .set<SnakeSpawn>(
           SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
-      .set<Direction>(Direction::DOWN)
-      .set<Food>(Food{TilePos{55, 55}})
-      .set<raylib::Rectangle>(raylib::Rectangle(3 * 8, 5 * 8, 8, 8)) // 设置矩形组件
-      .set<raylib::Color>(raylib::Color::Green()); // 设置颜色组件
-  //
+      .set<Direction>(Direction::DOWN);
+
+  // 获取 TileMap 实体
+  auto tilemap_entity = ecs.lookup("TilePos");
+  auto& tile_map = *ecs.get<TileMap>(tilemap_entity);
+  // 获取 Snake 实体
+  auto snake_entity = ecs.entity(snakeBody);
+  auto& snake = snake_entity.get_mut<Snake>();
+
+  // 生成初始食物
+  spawn_food(ecs, tile_map, snake);
+
 
   snake_system.depends_on(flecs::OnStart);
 

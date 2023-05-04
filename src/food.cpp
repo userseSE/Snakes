@@ -1,5 +1,6 @@
 #include "food.hpp"
 #include "Color.hpp"
+#include "Rectangle.hpp"
 #include "bundle.hpp"
 #include "map.hpp"
 #include "snake.hpp"
@@ -54,3 +55,26 @@ void spawn_food(flecs::world &ecs, TileMap &tile_map, Snake &snake){
 
     food_bundle.spawn(ecs);
 }
+
+void update_render_food(flecs::iter &it, Food *foods, TilePos *pos, raylib::Color *color, 
+                        TileSize *size, raylib::Rectangle *rects){
+
+    for (int i = 0; i < it.count(); i++) {  //遍历所有食物实体
+        rects[i].SetPosition(size[i].x*pos[i].x, size[i].y*pos[i].y); //更新矩形的位置
+    }
+
+}
+
+void init_food_graphic(flecs::iter &it, Food *foods, TilePos *pos, raylib::Color *color, TileSize *size){
+    for (int i = 0; i < it.count(); i++) {  //遍历所有食物实体
+        raylib::Rectangle rect = {
+            static_cast<float>(pos[i].x * size[i].x), 
+            static_cast<float>(pos[i].y * size[i].y), 
+            static_cast<float>(size[i].x), 
+            static_cast<float>(size[i].y)
+            };  //创建一个矩形表示食物
+
+        it.entity(i).set(rect); //为食物实体设置矩形组件
+    }
+}
+
