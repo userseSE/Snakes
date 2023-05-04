@@ -1,4 +1,5 @@
 #include "food.hpp"
+#include "map.hpp"
 #include "Color.hpp"
 #include "Rectangle.hpp"
 #include "bundle.hpp"
@@ -16,34 +17,32 @@
 //四个模板参数：Food、TilePos、TileSize 和 raylib::Color
 using FoodBundle=basic::Bundle<Food, TilePos, TileSize, raylib::Color>;
 
-TilePos random_food_pos(flecs::world &ecs, TileMap &tile_map, Snake &snake){
+TilePos random_food_pos(flecs::world &ecs){
+    // 从Flecs世界获取TileMap组件
+    const auto *tile_map = ecs.get<TileMap>(ecs.singleton<TileMapBundle>());
+
     std::random_device rd;  //随机数种子
     std::mt19937 gen(rd()); //随机数生成器
-    std::uniform_int_distribution<> dis_x(0, tile_map.width - 1); //均匀分布
-    std::uniform_int_distribution<> dis_y(0, tile_map.height - 1);
+    std::uniform_int_distribution<> dis_x(0, tile_map->width - 1); //均匀分布
+    std::uniform_int_distribution<> dis_y(0, tile_map->height - 1);
 
     TilePos food_pos;
-
+    
     bool valid_pos = false; //是否是有效的位置
+    const auto *occupied_tiles = ecs.get<OccupiedTiles>(ecs.singleton<TileMapBundle>());
+        
     while (!valid_pos) {
         food_pos.x = dis_x(gen); //生成随机位置
         food_pos.y = dis_y(gen);
 
         //检查食物是否与蛇身体重叠
-        valid_pos = true;
-        for (auto &snake_part : snake.body) {   //遍历蛇身体
-            const TilePos *snake_part_pos=ecs.get<TilePos>(snake_part); //获取蛇身体的位置
-            if(snake_part_pos->x==food_pos.x && snake_part_pos->y==food_pos.y){
-                valid_pos=false;
-                break;
-            }
-        }
+        valid_pos = !occupied_tiles->is_occupied(food_pos.x, food_pos.y);
     }
     return food_pos;
 }
 
-void spawn_food(flecs::world &ecs, TileMap &tile_map, Snake &snake){
-    TilePos food_pos = random_food_pos(ecs,tile_map, snake);
+void spawn_food(flecs::world &ecs){
+    TilePos food_pos = random_food_pos(ecs);
 
     raylib::Color food_color = raylib::Color::Green();
     FoodBundle food_bundle = {

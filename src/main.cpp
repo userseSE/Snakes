@@ -21,7 +21,7 @@
 void setup(flecs::world &ecs) {
   auto tilemap = TileMap{100, 100};
   TileMapBundle a =
-      TileMapBundle{TileMap{tilemap}, TileMapStorage{}, TileSize{8, 8}};
+      TileMapBundle{TileMap{tilemap}, TileMapStorage{}, TileSize{8, 8},OccupiedTiles{}};
 
   auto entity = a.spawn(ecs);
   auto entity_ref = ecs.entity(entity);
@@ -103,15 +103,9 @@ int main(int argc, char *argv[]) {
           SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
       .set<Direction>(Direction::DOWN);
 
-  // 获取 TileMap 实体
-  auto tilemap_entity = ecs.lookup("TilePos");
-  auto& tile_map = *ecs.get<TileMap>(tilemap_entity);
-  // 获取 Snake 实体
-  auto snake_entity = ecs.entity(snakeBody);
-  auto& snake = snake_entity.get_mut<Snake>();
 
   // 生成初始食物
-  spawn_food(ecs, tile_map, snake);
+  spawn_food(ecs);
 
 
   snake_system.depends_on(flecs::OnStart);

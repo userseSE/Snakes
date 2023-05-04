@@ -52,8 +52,27 @@ struct TileMapStorage : public std::unordered_map<std::pair<int, int>,
   }
 };
 using TileBundle = basic::Bundle<TileType, TilePos>;
-using TileMapBundle = basic::Bundle<TileMap, TileMapStorage,TileSize>;
 
 struct MapPlugin {
   void build(flecs::world &world);
 };
+  
+struct OccupiedTiles : public std::unordered_map<std::pair<int, int>, bool, PairHash> {
+
+  bool is_occupied(int x, int y) const{
+    const auto key = std::make_pair(x, y);
+    auto it = this->find(key);
+    if (it != this->end()) {
+      return true;
+    }
+    return false;
+  }
+
+  void set_occupied(int x, int y) {
+    const auto key = std::make_pair(x, y);
+    (*this)[key] = true;
+  }
+};
+
+using TileMapBundle = basic::Bundle<TileMap, TileMapStorage, TileSize, OccupiedTiles>;
+
