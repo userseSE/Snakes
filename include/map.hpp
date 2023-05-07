@@ -74,5 +74,5 @@ struct OccupiedTiles : public std::unordered_map<std::pair<int, int>, bool, Pair
   }
 };
 
-using TileMapBundle = basic::Bundle<TileMap, TileMapStorage, TileSize, OccupiedTiles>;
+using TileMapBundle = basic::Bundle<TileMap, TileMapStorage, TileSize>;
 

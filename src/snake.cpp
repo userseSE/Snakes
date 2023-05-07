@@ -135,7 +135,7 @@ void update_render_snake(flecs::iter &it, SnakeBody *snakes, TilePos *pos,
 //根据蛇当前的方向移动具有 Snake 组件的实体
 void move_snake(flecs::iter &it, Snake *snakes, Direction *dirs) {
 
-  auto *occupied_tiles = it.world().get<OccupiedTiles>(it.world().singleton<TileMapBundle>());
+ 
   //遍历实体，对于每个具有 Snake 组件的实体：
   //a. 获取实体的方向组件。
   //b. 获取蛇头部实体的位置。
@@ -158,9 +158,6 @@ void move_snake(flecs::iter &it, Snake *snakes, Direction *dirs) {
     // printf("%d %d\n",tail,head);
     snake.body.pop_back();  // Remove tail from snake body
 
-    // Remove tail position from occupied tiles
-    occupied_tiles->set_occupied(new_pos.x, new_pos.y);
-
 
     SnakeBodyBundle body =
         SnakeBodyBundle{SnakeBody{SnakeBody::HEAD}, TilePos{new_pos},
@@ -170,13 +167,7 @@ void move_snake(flecs::iter &it, Snake *snakes, Direction *dirs) {
 
     snake.body.push_front(tail);  
 
-    // Add new head position to occupied tiles
-    occupied_tiles->set_occupied(new_pos.x, new_pos.y);
-    // {
-    //   flecs::entity_t head = *snake.body.begin();
-    //   auto pos = it.world().entity(head).get<TilePos>();
-    //   printf("%d %d\n",pos->x,pos->y);
-    // }
+
   }
 }
 
