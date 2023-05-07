@@ -11,6 +11,7 @@
 #include "Rectangle.hpp"
 #include "bundle.hpp"
 #include "food.hpp"
+#include "input.hpp"
 #include "map.hpp"
 #include "utils.hpp"
 #include <algorithm>
@@ -61,6 +62,7 @@ void init_snake_bodies(flecs::iter &it, SnakeSpawn *snakes) {
     it.entity(i).remove<SnakeSpawn>(); // Remove SnakeSpawn component
     // 将 Snake 组件添加到具有 SnakeSpawn 组件的实体，这将在后续的系统中使用它。
     it.entity(i).set(snake); // Set Snake component
+    it.entity(i).set(SnakeController{});
   }
 }
 
