@@ -10,3 +10,6 @@
 [submodule "thirdparty/raylib-cpp"]
 	path = thirdparty/raylib-cpp
 	url = https://github.com/RobLoach/raylib-cpp.git
+[submodule "thirdparty/cppzmq"]
+	path = thirdparty/cppzmq
+	url = https://github.com/zeromq/cppzmq.git
