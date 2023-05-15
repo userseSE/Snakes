@@ -17,6 +17,7 @@ aux_source_directory(${PROJECT_SOURCE_DIR}/src/ source_files)
 add_subdirectory(thirdparty/flecs EXCLUDE_FROM_ALL)
 add_subdirectory(thirdparty/raylib EXCLUDE_FROM_ALL)
 add_subdirectory(thirdparty/raylib-cpp EXCLUDE_FROM_ALL)
+add_subdirectory(thirdparty/cppzmq EXCLUDE_FROM_ALL)
 
 add_executable(test   ${source_files})
 
@@ -26,6 +27,8 @@ target_include_directories(
     ${PROJECT_SOURCE_DIR}/include/
  )
 target_link_libraries(test PRIVATE  raylib  flecs::flecs_static raylib_cpp )
+target_link_libraries(test PRIVATE  cppzmq)
+
 install (TARGETS test DESTINATION bin)
 
 
