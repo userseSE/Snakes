@@ -1,20 +1,23 @@
+#include "client.hpp"
 #include "Color.hpp"
 #include "Rectangle.hpp"
 #include "flecs.h"
-#include "client.hpp"
 #include "food.hpp"
 #include "input.hpp"
 #include "map.hpp"
 #include "raylib-cpp.hpp"
 #include "raylib.h"
+#include "server.hpp"
 #include "snake.hpp"
 #include "system_helper.hpp"
 #include "utils.hpp"
 #include <iostream>
+#include <memory>
 #include <stdio.h>
 #include <tuple>
 #include <utility>
 #include <vector>
+
 
 void setup(flecs::world &ecs) {
   auto tilemap = TileMap{100, 100};
@@ -79,52 +82,57 @@ int main(int argc, char *argv[]) {
   // Initialization
   //--------------------------------------------------------------------------------------
   // init world
+
   flecs::world ecs;
 
   ZmqClientPlugin client;
+  printf("test\n");
+  ecs.set<ZmqClientRef>(std::move(ZmqClientRef{std::make_shared<ZmqClient>(2)}));
+  printf("test\n");
+  ecs.set<ServerAddress>({"tcp://127.0.0.1:5551"});
   client.build(ecs);
-  setup(ecs); // setup tilemap
-//   auto system =
-//       ecs.system<TilePos, TileType, const TileSize>().term_at(3).parent().iter(
-//           init_color); // init color
-//   auto draw_rect =
-//       ecs.system<raylib::Rectangle, raylib::Color>().term_at(2).optional().iter(
-//           draw_rects);                            // draw rect
-//   IntoSystemBuilder builder(init_snake_bodies);   // init snake
-//   IntoSystemBuilder builder2(init_snake_graphic); // init snake graphic
-//   IntoSystemBuilder move_snake_system(move_snake);
-//   IntoSystemBuilder update_render_snake_system(update_render_snake);
-//   auto spawn_food = spawn_food_system(ecs);
-//   auto map_food = food_to_map_system(ecs);
-//   spawn_food.depends_on(flecs::PostUpdate);
-//   map_food.depends_on(spawn_food);
 
-//   auto snake_system = builder.build(ecs);
-//   auto snake_system2 = builder2.build(ecs);
-//   auto snake_system3 = move_snake_system.build(ecs);
-//   auto snake_system4 = update_render_snake_system.build(ecs);
+  //   auto system =
+  //       ecs.system<TilePos, TileType, const
+  //       TileSize>().term_at(3).parent().iter(
+  //           init_color); // init color
+  //   auto draw_rect =
+  //       ecs.system<raylib::Rectangle,
+  //       raylib::Color>().term_at(2).optional().iter(
+  //           draw_rects);                            // draw rect
+  //   IntoSystemBuilder builder(init_snake_bodies);   // init snake
+  //   IntoSystemBuilder builder2(init_snake_graphic); // init snake graphic
+  //   IntoSystemBuilder move_snake_system(move_snake);
+  //   IntoSystemBuilder update_render_snake_system(update_render_snake);
+  //   auto spawn_food = spawn_food_system(ecs);
+  //   auto map_food = food_to_map_system(ecs);
+  //   spawn_food.depends_on(flecs::PostUpdate);
+  //   map_food.depends_on(spawn_food);
+
+  //   auto snake_system = builder.build(ecs);
+  //   auto snake_system2 = builder2.build(ecs);
+  //   auto snake_system3 = move_snake_system.build(ecs);
+  //   auto snake_system4 = update_render_snake_system.build(ecs);
   auto controller = input_system(ecs);
-//   snake_system3.interval(0.1);
-//   snake_system3.depends_on(flecs::PreUpdate);
-//   snake_system4.depends_on(flecs::PostUpdate);
+  //   snake_system3.interval(0.1);
+  //   snake_system3.depends_on(flecs::PreUpdate);
+  //   snake_system4.depends_on(flecs::PostUpdate);
   controller.depends_on(flecs::PreUpdate);
   int screenWidth = 1600;
   int screenHeight = 900;
   raylib::Color textColor = raylib::Color::LightGray();
   raylib::Window window(screenWidth, screenHeight, "贪吃蛇");
 
-
-
   ecs.entity()
       .set<SnakeSpawn>(
           SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
-      .set<Direction>(Direction::DOWN)
-     .set<SnakeController>({});
+      .set<Direction>(Direction::RIGHT)
+      .set<SnakeController>({987});
 
-  //snake_system.depends_on(flecs::OnStart);
+  // snake_system.depends_on(flecs::OnStart);
 
-  //system.depends_on(flecs::OnStart);
-
+  // system.depends_on(flecs::OnStart);
+  printf("start");
   SetTargetFPS(60);
   //--------------------------------------------------------------------------------------
 

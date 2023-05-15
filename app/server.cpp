@@ -1,3 +1,4 @@
+#include "server.hpp"
 #include "Color.hpp"
 #include "Rectangle.hpp"
 #include "flecs.h"
@@ -8,15 +9,16 @@
 #include "map.hpp"
 #include "raylib-cpp.hpp"
 #include "raylib.h"
-#include "server.hpp"
 #include "snake.hpp"
 #include "system_helper.hpp"
 #include "utils.hpp"
 #include <iostream>
+#include <memory>
 #include <stdio.h>
 #include <tuple>
 #include <utility>
 #include <vector>
+
 
 void setup(flecs::world &ecs) {
   auto tilemap = TileMap{100, 100};
@@ -105,29 +107,31 @@ int main(int argc, char *argv[]) {
   auto snake_system2 = builder2.build(ecs);
   auto snake_system3 = move_snake_system.build(ecs);
   auto snake_system4 = update_render_snake_system.build(ecs);
- // auto controller = input_system(ecs);
+  auto controller = input_system(ecs);
   snake_system3.interval(0.1);
   snake_system3.depends_on(flecs::PreUpdate);
   snake_system4.depends_on(flecs::PostUpdate);
- // controller.depends_on(flecs::PostUpdate);
+  controller.depends_on(flecs::PostUpdate);
   int screenWidth = 1600;
   int screenHeight = 900;
   raylib::Color textColor = raylib::Color::LightGray();
   raylib::Window window(screenWidth, screenHeight, "贪吃蛇");
 
 
-
-  ecs.entity()
-      .set<SnakeSpawn>(
-          SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
-      .set<Direction>(Direction::DOWN);
-     // .set<SnakeController>({});
-
+  auto snake_id = ecs.entity()
+                      .set<SnakeSpawn>(SnakeSpawn{
+                          {TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
+                      .set<Direction>(Direction::DOWN);
+  printf("%d\n", snake_id.id());
+    ecs.entity()
+      .set<ZmqServerRef>(ZmqServerRef{std::make_shared<ZmqServer>()})
+      .set<ServerAddress>({"tcp://127.0.0.1:5551"});
   snake_system.depends_on(flecs::OnStart);
 
   system.depends_on(flecs::OnStart);
 
   SetTargetFPS(60);
+
   //--------------------------------------------------------------------------------------
 
   // Main game loop

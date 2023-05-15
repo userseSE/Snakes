@@ -115,7 +115,8 @@ int main(int argc, char *argv[]) {
   ecs.entity()
       .set<SnakeSpawn>(
           SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
-      .set<Direction>(Direction::DOWN);
+      .set<Direction>(Direction::DOWN)
+      .set<SnakeController>({});
 
   snake_system.depends_on(flecs::OnStart);
 

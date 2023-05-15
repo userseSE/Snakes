@@ -1,22 +1,27 @@
 #include "server.hpp"
 #include "flecs/addons/cpp/c_types.hpp"
+#include "flecs/addons/cpp/mixins/pipeline/decl.hpp"
 #include "input.hpp"
 #include "system_helper.hpp"
 #include "zmq.hpp"
 #include <nlohmann/json.hpp>
+#include <stdio.h>
 using json = nlohmann::json;
 
 enum { CONTROL, GRAPH, AUTH, REPLY };
-void init_zmq_server(flecs::iter &it, ZmqServer *server,
+void init_zmq_server(flecs::iter &it, ZmqServerRef *server,
                      ServerAddress *bind_address) {
+  printf("test server up:\n");
   for (auto i = 0; i < it.count(); i++) {
-    server[i].bind(bind_address[i].c_str());
+    server[i]->bind(bind_address[i].c_str());
+    printf("test server up at %s\n", bind_address[i].c_str());
   }
 }
 
 auto handle_message(zmq::message_t &message, flecs::iter &it)
     -> zmq::message_t {
   auto json_msg = json::parse(message.to_string_view());
+  printf("%s\n", message.to_string_view().data());
   auto cmdtype = json_msg["type"].get<int>();
   json reply_msg;
   reply_msg["type"] = REPLY;
@@ -38,10 +43,10 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
   }
   return zmq::message_t{reply_msg.dump()};
 }
-void reply_commands(flecs::iter &it, ZmqServer *servers) {
+void reply_commands(flecs::iter &it, ZmqServerRef *servers) {
   for (auto i = 0; i < it.count(); i++) {
     auto &server = servers[i];
-    auto &socket = server.socket();
+    auto &socket = server->socket();
     zmq::message_t message;
     while (true) {
       auto success = socket.recv(message, zmq::recv_flags::dontwait);
@@ -65,6 +70,6 @@ auto reply_commands_system(flecs::world &world) -> flecs::system {
 }
 
 void ZmqServerPlugin::build(flecs::world &world) {
-
-    
+  init_zmq_server_system(world).depends_on(flecs::OnStart);
+  reply_commands_system(world).depends_on(flecs::PreUpdate);
 }
