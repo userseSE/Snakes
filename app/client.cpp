@@ -20,8 +20,9 @@
 
 
 void setup(flecs::world &ecs) {
-  auto tilemap = TileMap{100, 100};
-  auto gamemap = GameMap{};
+  //设置图块地图和游戏地图的初始状态
+  auto tilemap = TileMap{100, 100}; 
+  auto gamemap = GameMap{}; 
   TileMapBundle a =
       TileMapBundle{TileMap{tilemap}, TileMapStorage{}, TileSize{8, 8}};
   ecs.set(OccupiedTiles{});
@@ -85,12 +86,12 @@ int main(int argc, char *argv[]) {
 
   flecs::world ecs;
 
-  ZmqClientPlugin client;
+  ZmqClientPlugin client; 
   printf("test\n");
-  ecs.set<ZmqClientRef>(std::move(ZmqClientRef{std::make_shared<ZmqClient>(2)}));
+  ecs.set<ZmqClientRef>(std::move(ZmqClientRef{std::make_shared<ZmqClient>(2)})); 
   printf("test\n");
   ecs.set<ServerAddress>({"tcp://127.0.0.1:5551"});
-  client.build(ecs);
+  client.build(ecs);  
 
   //   auto system =
   //       ecs.system<TilePos, TileType, const
@@ -113,11 +114,13 @@ int main(int argc, char *argv[]) {
   //   auto snake_system2 = builder2.build(ecs);
   //   auto snake_system3 = move_snake_system.build(ecs);
   //   auto snake_system4 = update_render_snake_system.build(ecs);
-  auto controller = input_system(ecs);
+  auto controller = input_system(ecs);  // input
+  //auto让编译器自动推断变量的类型
   //   snake_system3.interval(0.1);
   //   snake_system3.depends_on(flecs::PreUpdate);
   //   snake_system4.depends_on(flecs::PostUpdate);
-  controller.depends_on(flecs::PreUpdate);
+  controller.depends_on(flecs::PreUpdate);  
+  //在每次更新之前，flecs::PreUpdate系统都会被调用
   int screenWidth = 1600;
   int screenHeight = 900;
   raylib::Color textColor = raylib::Color::LightGray();
@@ -133,7 +136,7 @@ int main(int argc, char *argv[]) {
 
   // system.depends_on(flecs::OnStart);
   printf("start");
-  SetTargetFPS(60);
+  SetTargetFPS(60); // Set our game to run at 60 frames-per-second
   //--------------------------------------------------------------------------------------
 
   // Main game loop
@@ -150,9 +153,7 @@ int main(int argc, char *argv[]) {
 
     { window.ClearBackground(RAYWHITE); }
 
-    // std::cout << "Before ecs.progress()" << std::endl;
-    ecs.progress();
-    // std::cout << "After ecs.progress()" << std::endl;
+    ecs.progress(); //更新ecs世界
 
     EndDrawing();
     //----------------------------------------------------------------------------------

@@ -14,14 +14,16 @@ using json = nlohmann::json;
 
 enum { CONTROL, GRAPH, AUTH, REPLY };
 void init_zmq(flecs::iter &it) {
+  //初始化 ZMQ 客户端并连接到服务器
   printf("connect to server\n");
-  auto &client = *it.world().get_mut<ZmqClientRef>();
-  client->connect(it.world().get<ServerAddress>()->c_str());
+  auto &client = *it.world().get_mut<ZmqClientRef>(); //获取客户端
+  client->connect(it.world().get<ServerAddress>()->c_str());  //连接服务器
   printf("server connected\n");
 }
 
 void control_cmd(flecs::iter &it, Direction *directions,
                  SnakeController *controller) {
+  //发送控制命令到服务器
   printf("start cmd parsing\n");
   auto &client = *it.world().get_mut<ZmqClientRef>();
   json cmd;
@@ -29,16 +31,17 @@ void control_cmd(flecs::iter &it, Direction *directions,
   cmd["id"] = controller[0].player_id;
   cmd["cmd"] = directions[0];
 
-    auto & socket = client->socket();
-    zmq::message_t msg{cmd.dump()};
-    socket.send(msg, zmq::send_flags::none);
+    auto & socket = client->socket(); //获取socket
+    zmq::message_t msg{cmd.dump()}; //创建消息
+    socket.send(msg, zmq::send_flags::none);  //发送消息
     printf("send %s\n", cmd.dump().c_str());
-    auto recv = socket.recv(msg, zmq::recv_flags::none);
+    auto recv = socket.recv(msg, zmq::recv_flags::none);  //接收消息
 
 
 }
 
 void ZmqClientPlugin::build(flecs::world &world) {
+  //构建函数，用于在ECS世界中构建 ZMQ 客户端
   printf("zmq plugin\n");
   init_zmq_client_system(world).depends_on(flecs::OnStart);
   IntoSystemBuilder system(control_cmd);
@@ -46,6 +49,7 @@ void ZmqClientPlugin::build(flecs::world &world) {
 }
 
 auto init_zmq_client_system(flecs::world &world) -> flecs::system {
+  //创建初始化 ZMQ 客户端的系统
   IntoSystemBuilder system(init_zmq);
   return system.build(world);
 }

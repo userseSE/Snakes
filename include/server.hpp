@@ -4,18 +4,18 @@
 #include <string>
 #include <zmq.hpp>
 
-struct ServerAddress : std::string {};
+struct ServerAddress : std::string {};    
 
 class ZmqServer {
 public:
   explicit ZmqServer(int thread = 1)
-      : context_(thread), socket_(context_, zmq::socket_type::rep) {}
+      : context_(thread), socket_(context_, zmq::socket_type::rep) {} 
   void bind(const std::string &endpoint) {
-    socket_.set(zmq::sockopt::linger, 1);
-    socket_.bind(endpoint);
+    socket_.set(zmq::sockopt::linger, 1); 
+    socket_.bind(endpoint); 
   }
   void close() { socket_.close(); }
-  auto socket() -> zmq::socket_t & { return socket_; }
+  auto socket() -> zmq::socket_t & { return socket_; }  
 
 private:
   zmq::context_t context_;

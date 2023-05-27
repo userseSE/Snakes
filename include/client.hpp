@@ -6,11 +6,11 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
+using json = nlohmann::json;  
 
-class ZmqClient {
+class ZmqClient { 
 public:
-  explicit ZmqClient(int thread = 1)
+  explicit ZmqClient(int thread = 1)  
       : context_(thread), socket_(context_, zmq::socket_type::req) {}
   void connect(const std::string &endpoint) {
     socket_.set(zmq::sockopt::linger, 1);
