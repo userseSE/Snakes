@@ -4,11 +4,14 @@
 #include "input.hpp"
 #include "system_helper.hpp"
 #include "zmq.hpp"
+#include "json_conversion.hpp"
 #include <nlohmann/json.hpp>
 #include <stdio.h>
+#include <winnt.h>
+
 using json = nlohmann::json;
 
-enum { CONTROL, GRAPH, AUTH, REPLY };
+enum { CONTROL, GRAPH, AUTH, REPLY, GRAPH_REPLY, AUTH_REPLY };
 //初始化server，绑定地址
 void init_zmq_server(flecs::iter &it, ZmqServerRef *server,
                      ServerAddress *bind_address) { 
@@ -41,10 +44,12 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
 
   case (int)GRAPH:{
     auto player_id = json_msg["id"].get<flecs::entity_t>(); //获取玩家id
-    auto tileType= json_msg["tileType"].get<flecs::entity_t>();
-    auto gameMap = json_msg["gameMap"].get<flecs::entity_t>();
-    auto tileMap = json_msg["tileMap"].get<flecs::entity_t>();
-    auto tileSize = json_msg["tileSize"].get<flecs::entity_t>();
+    auto queryRect=it.world().query<raylib::Rectangle, raylib::Color>();
+    queryRect.each([&](raylib::Rectangle &rect, raylib::Color &color){
+    reply_msg["type"] = GRAPH_REPLY;  
+    reply_msg["rect"].push_back(rect);
+    reply_msg["color"].push_back(color);
+    });
     break;
   }
 
