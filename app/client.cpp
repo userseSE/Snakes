@@ -18,11 +18,10 @@
 #include <utility>
 #include <vector>
 
-
 void setup(flecs::world &ecs) {
-  //设置图块地图和游戏地图的初始状态
-  auto tilemap = TileMap{100, 100}; 
-  auto gamemap = GameMap{}; 
+  // 设置图块地图和游戏地图的初始状态
+  auto tilemap = TileMap{100, 100};
+  auto gamemap = GameMap{};
   TileMapBundle a =
       TileMapBundle{TileMap{tilemap}, TileMapStorage{}, TileSize{8, 8}};
   ecs.set(OccupiedTiles{});
@@ -86,41 +85,18 @@ int main(int argc, char *argv[]) {
 
   flecs::world ecs;
 
-  ZmqClientPlugin client; 
+  ZmqClientPlugin client;
   printf("test\n");
-  ecs.set<ZmqClientRef>(std::move(ZmqClientRef{std::make_shared<ZmqClient>(2)})); 
+  ecs.set<ZmqClientRef>(
+      std::move(ZmqClientRef{std::make_shared<ZmqClient>(2)}));
   printf("test\n");
   ecs.set<ServerAddress>({"tcp://127.0.0.1:5551"});
-  client.build(ecs);  
+  client.build(ecs);
 
-  //   auto system =
-  //       ecs.system<TilePos, TileType, const
-  //       TileSize>().term_at(3).parent().iter(
-  //           init_color); // init color
-  //   auto draw_rect =
-  //       ecs.system<raylib::Rectangle,
-  //       raylib::Color>().term_at(2).optional().iter(
-  //           draw_rects);                            // draw rect
-  //   IntoSystemBuilder builder(init_snake_bodies);   // init snake
-  //   IntoSystemBuilder builder2(init_snake_graphic); // init snake graphic
-  //   IntoSystemBuilder move_snake_system(move_snake);
-  //   IntoSystemBuilder update_render_snake_system(update_render_snake);
-  //   auto spawn_food = spawn_food_system(ecs);
-  //   auto map_food = food_to_map_system(ecs);
-  //   spawn_food.depends_on(flecs::PostUpdate);
-  //   map_food.depends_on(spawn_food);
+  auto controller = input_system(ecs); // input
 
-  //   auto snake_system = builder.build(ecs);
-  //   auto snake_system2 = builder2.build(ecs);
-  //   auto snake_system3 = move_snake_system.build(ecs);
-  //   auto snake_system4 = update_render_snake_system.build(ecs);
-  auto controller = input_system(ecs);  // input
-  //auto让编译器自动推断变量的类型
-  //   snake_system3.interval(0.1);
-  //   snake_system3.depends_on(flecs::PreUpdate);
-  //   snake_system4.depends_on(flecs::PostUpdate);
-  controller.depends_on(flecs::PreUpdate);  
-  //在每次更新之前，flecs::PreUpdate系统都会被调用
+  controller.depends_on(flecs::PreUpdate);
+  // 在每次更新之前，flecs::PreUpdate系统都会被调用
   int screenWidth = 1600;
   int screenHeight = 900;
   raylib::Color textColor = raylib::Color::LightGray();
@@ -149,11 +125,20 @@ int main(int argc, char *argv[]) {
     //----------------------------------------------------------------------------------
     // Draw
     //----------------------------------------------------------------------------------
-    BeginDrawing();
+    
+    ecs.progress(); // 更新ecs世界
 
+    // 获取所有具有raylib::Rectangle和raylib::Color组件的实体
+    auto queryRect = ecs.query<raylib::Rectangle, raylib::Color>();
+
+    // 清除屏幕
+    BeginDrawing();
     { window.ClearBackground(RAYWHITE); }
 
-    ecs.progress(); //更新ecs世界
+    // 遍历每个实体并绘制矩形
+    queryRect.each([&](raylib::Rectangle &rect, raylib::Color &color) {
+      DrawRectangleRec(rect, color);
+    });
 
     EndDrawing();
     //----------------------------------------------------------------------------------

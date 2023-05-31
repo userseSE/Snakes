@@ -41,8 +41,8 @@ void control_cmd(flecs::iter &it, Direction *directions,
   auto recv = socket.recv(msg, zmq::recv_flags::none); // 接收消息
 }
 
-void graph_show(flecs::iter &it, raylib::Rectangle &rect,
-                raylib::Color &color) {
+void graph_show(flecs::iter &it) {
+  printf("start graph show\n");
 
   // 请求服务器发送图形数据
   auto &client = *it.world().get_mut<ZmqClientRef>(); // 获取客户端
@@ -57,6 +57,7 @@ void graph_show(flecs::iter &it, raylib::Rectangle &rect,
   // 接收消息
   zmq::message_t recv_msg;
   auto recv = socket.recv(recv_msg, zmq::recv_flags::none); // 接收消息
+  printf("recv %s\n", static_cast<const char *>(recv_msg.data()));
 
   // 这次返回的结果需要进行处理，然后从接受的数据反序列化出json数据
   //  将接收到的消息解析为JSON对象
@@ -90,7 +91,10 @@ void ZmqClientPlugin::build(flecs::world &world) {
   printf("zmq plugin\n");
   init_zmq_client_system(world).depends_on(flecs::OnStart);
   IntoSystemBuilder system(control_cmd);
+  IntoSystemBuilder system2(graph_show);
+
   system.build(world);
+  system2.build(world);
 }
 
 auto init_zmq_client_system(flecs::world &world) -> flecs::system {
