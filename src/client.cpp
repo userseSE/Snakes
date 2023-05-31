@@ -53,6 +53,9 @@ void graph_show(flecs::iter &it) {
   zmq::message_t msg{graph.dump()};        // 创建消息
   socket.send(msg, zmq::send_flags::none); // 发送消息
 
+  std::string msg_str(static_cast<const char*>(msg.data()), msg.size());
+  printf("%s", msg_str.c_str());
+
   printf("send %s\n", graph.dump().c_str());
   // 接收消息
   zmq::message_t recv_msg;
@@ -93,8 +96,10 @@ void ZmqClientPlugin::build(flecs::world &world) {
   IntoSystemBuilder system(control_cmd);
   IntoSystemBuilder system2(graph_show);
 
-  system.build(world);
+  // system.build(world);
+  printf("zmq plugin2\n");
   system2.build(world);
+  printf("zmq plugin3\n");
 }
 
 auto init_zmq_client_system(flecs::world &world) -> flecs::system {

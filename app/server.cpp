@@ -18,7 +18,7 @@
 #include <tuple>
 #include <utility>
 #include <vector>
-
+using CollisionQuery = flecs::query<const Rectangle, const Color>;
 
 void setup(flecs::world &ecs) {
   auto tilemap = TileMap{100, 100};
@@ -88,9 +88,21 @@ int main(int argc, char *argv[]) {
   ZmqServerPlugin server;
   server.build(ecs);
   setup(ecs); // setup tilemap
+
   auto system =
       ecs.system<TilePos, TileType, const TileSize>().term_at(3).parent().iter(
           init_color); // init color
+
+  CollisionQuery q_collide = ecs.query<const Rectangle, const Color>();
+
+  auto sys = ecs.system<const Rectangle, const Color>("Collide")
+                 .ctx(q_collide) // 将查询对象的地址作为上下文传递给系统
+                 .each([](flecs::iter &it, size_t i, const Rectangle r1,
+                          const Color c1) {
+                   CollisionQuery *q = it.ctx<CollisionQuery>();
+                   flecs::entity e1 = it.entity(i);
+                 });
+
   auto draw_rect =
       ecs.system<raylib::Rectangle, raylib::Color>().term_at(2).optional().iter(
           draw_rects);                            // draw rect
@@ -102,6 +114,7 @@ int main(int argc, char *argv[]) {
   auto map_food = food_to_map_system(ecs);
   spawn_food.depends_on(flecs::PostUpdate);
   map_food.depends_on(spawn_food);
+
   p1.build(ecs);
   auto snake_system = builder.build(ecs);
   auto snake_system2 = builder2.build(ecs);
@@ -117,13 +130,12 @@ int main(int argc, char *argv[]) {
   raylib::Color textColor = raylib::Color::LightGray();
   raylib::Window window(screenWidth, screenHeight, "贪吃蛇");
 
-
   auto snake_id = ecs.entity()
                       .set<SnakeSpawn>(SnakeSpawn{
                           {TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
                       .set<Direction>(Direction::DOWN);
   printf("%d\n", snake_id.id());
-    ecs.entity()
+  ecs.entity()
       .set<ZmqServerRef>(ZmqServerRef{std::make_shared<ZmqServer>()})
       .set<ServerAddress>({"tcp://127.0.0.1:5551"});
   snake_system.depends_on(flecs::OnStart);

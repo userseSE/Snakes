@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 using json = nlohmann::json;
+using CollisionQuery = flecs::query<const Rectangle, const Color>;
 
 enum { CONTROL, GRAPH, AUTH, REPLY, GRAPH_REPLY, AUTH_REPLY };
 // 初始化server，绑定地址
@@ -22,7 +23,7 @@ void init_zmq_server(flecs::iter &it, ZmqServerRef *server,
   }
 }
 
-auto handle_message(zmq::message_t &message, flecs::iter &it)
+auto handle_message(zmq::message_t &message, flecs::iter &it, CollisionQuery* q)
     -> zmq::message_t {
   //->表示一个函数的返回类型
   // 首先将接收到的消息解析为 JSON 格式，然后打印消息内容
@@ -45,8 +46,11 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
   }
 
   case (int)GRAPH: {
+    printf("prepare graph\n");
     // auto player_id = json_msg["id"].get<flecs::entity_t>(); //获取玩家id
-    auto queryRect = it.world().query<raylib::Rectangle, raylib::Color>();
+    // auto queryRect = it.world().query<raylib::Rectangle, raylib::Color>();
+    auto queryRect = q->query<raylib::Rectangle, raylib::Color>();
+    printf("query graph\n");
     queryRect.each([&](raylib::Rectangle &rect, raylib::Color &color) {
       reply_msg["type"] = GRAPH_REPLY;
       reply_msg["rect"].push_back(rect);
