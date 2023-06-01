@@ -49,7 +49,7 @@ auto handle_message(zmq::message_t &message, flecs::iter &it, CollisionQuery* q)
     printf("prepare graph\n");
     // auto player_id = json_msg["id"].get<flecs::entity_t>(); //获取玩家id
     // auto queryRect = it.world().query<raylib::Rectangle, raylib::Color>();
-    auto queryRect = q->query<raylib::Rectangle, raylib::Color>();
+    auto queryRect = q.query<raylib::Rectangle, raylib::Color>();
     printf("query graph\n");
     queryRect.each([&](raylib::Rectangle &rect, raylib::Color &color) {
       reply_msg["type"] = GRAPH_REPLY;

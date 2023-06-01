@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
   CollisionQuery q_collide = ecs.query<const Rectangle, const Color>();
 
   auto sys = ecs.system<const Rectangle, const Color>("Collide")
-                 .ctx(q_collide) // 将查询对象的地址作为上下文传递给系统
+                 .ctx(&q_collide) // 将查询对象的地址作为上下文传递给系统
                  .each([](flecs::iter &it, size_t i, const Rectangle r1,
                           const Color c1) {
                    CollisionQuery *q = it.ctx<CollisionQuery>();
