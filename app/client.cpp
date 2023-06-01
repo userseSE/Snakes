@@ -86,10 +86,10 @@ int main(int argc, char *argv[]) {
   flecs::world ecs;
 
   ZmqClientPlugin client;
-  printf("test\n");
+
   ecs.set<ZmqClientRef>(
       std::move(ZmqClientRef{std::make_shared<ZmqClient>(2)}));
-  printf("test\n");
+
   ecs.set<ServerAddress>({"tcp://127.0.0.1:5551"});
   client.build(ecs);
 
@@ -99,42 +99,39 @@ int main(int argc, char *argv[]) {
   // 在每次更新之前，flecs::PreUpdate系统都会被调用
   int screenWidth = 1600;
   int screenHeight = 900;
-  raylib::Color textColor = raylib::Color::LightGray();
+
   raylib::Window window(screenWidth, screenHeight, "贪吃蛇");
 
   ecs.entity()
       .set<SnakeSpawn>(
           SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
       .set<Direction>(Direction::RIGHT)
-      .set<SnakeController>({987});
+      .set<SnakeController>({990});
 
   // snake_system.depends_on(flecs::OnStart);
-
   // system.depends_on(flecs::OnStart);
   printf("start");
   SetTargetFPS(60); // Set our game to run at 60 frames-per-second
   //--------------------------------------------------------------------------------------
-
+  // 获取所有具有raylib::Rectangle和raylib::Color组件的实体
+  auto queryRect = ecs.query<raylib::Rectangle, raylib::Color>();
   // Main game loop
   while (!window.ShouldClose()) { // Detect window close button or ESC key
-    // Update (ECS世界以每秒60次的速率更新)
-    // ecs.progress(1.0/60);
+    // Update (ECS世界以每秒60次的速率更新)w
 
+    ecs.progress(); // 更新ecs世界
     //----------------------------------------------------------------------------------
     // Update your variables here
     //----------------------------------------------------------------------------------
     // Draw
     //----------------------------------------------------------------------------------
-    
-    ecs.progress(); // 更新ecs世界
 
-    // 获取所有具有raylib::Rectangle和raylib::Color组件的实体
-    auto queryRect = ecs.query<raylib::Rectangle, raylib::Color>();
+
 
     // 清除屏幕
     BeginDrawing();
     { window.ClearBackground(RAYWHITE); }
-
+     printf("recv %d\n", ecs.count<raylib::Color>());
     // 遍历每个实体并绘制矩形
     queryRect.each([&](raylib::Rectangle &rect, raylib::Color &color) {
       DrawRectangleRec(rect, color);

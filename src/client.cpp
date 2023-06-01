@@ -42,7 +42,6 @@ void control_cmd(flecs::iter &it, Direction *directions,
 }
 
 void graph_show(flecs::iter &it) {
-  printf("start graph show\n");
 
   // 请求服务器发送图形数据
   auto &client = *it.world().get_mut<ZmqClientRef>(); // 获取客户端
@@ -53,18 +52,16 @@ void graph_show(flecs::iter &it) {
   zmq::message_t msg{graph.dump()};        // 创建消息
   socket.send(msg, zmq::send_flags::none); // 发送消息
 
-  std::string msg_str(static_cast<const char*>(msg.data()), msg.size());
-  printf("%s", msg_str.c_str());
+  std::string msg_str(static_cast<const char *>(msg.data()), msg.size());
 
-  printf("send %s\n", graph.dump().c_str());
+
   // 接收消息
   zmq::message_t recv_msg;
   auto recv = socket.recv(recv_msg, zmq::recv_flags::none); // 接收消息
-  printf("recv %s\n", static_cast<const char *>(recv_msg.data()));
-
+   
   // 这次返回的结果需要进行处理，然后从接受的数据反序列化出json数据
   //  将接收到的消息解析为JSON对象
-  json received_json = json::parse(static_cast<const char *>(recv_msg.data()));
+  json received_json = json::parse(recv_msg.to_string_view());
 
   // 从解析后的JSON对象中获取矩形和颜色信息
   if (received_json["type"] == GRAPH_REPLY) {
@@ -74,32 +71,31 @@ void graph_show(flecs::iter &it) {
         received_json["color"].get<std::vector<raylib::Color>>();
 
     // 在插入之前clear掉所有的rect和color
-    it.world().remove<raylib::Rectangle, raylib::Color>();
+    it.world().delete_with<raylib::Color>();
 
     // 检查接收到的矩形和颜色数量是否匹配
     if (received_rects.size() == received_colors.size() &&
         !received_rects.empty()) {
-
+      it.world().defer_begin();
       for (size_t i = 0; i < received_rects.size(); ++i) {
-        auto e = it.world().entity();        // 创建一个实体
+        auto e = it.world().entity();                // 创建一个实体
         e.set<raylib::Rectangle>(received_rects[i]); // 插入矩形组件
         e.set<raylib::Color>(received_colors[i]);    // 插入颜色组件
       }
+      it.world().defer_end();
     }
   }
 }
 
 void ZmqClientPlugin::build(flecs::world &world) {
   // 构建函数，用于在ECS世界中构建 ZMQ 客户端
-  printf("zmq plugin\n");
+
   init_zmq_client_system(world).depends_on(flecs::OnStart);
   IntoSystemBuilder system(control_cmd);
   IntoSystemBuilder system2(graph_show);
 
-  // system.build(world);
-  printf("zmq plugin2\n");
+  system.build(world);
   system2.build(world);
-  printf("zmq plugin3\n");
 }
 
 auto init_zmq_client_system(flecs::world &world) -> flecs::system {

@@ -1,9 +1,8 @@
 #include "server.hpp"
 #include "Color.hpp"
-#include "Rectangle.hpp"
+
 #include "flecs.h"
-#include "flecs/addons/cpp/c_types.hpp"
-#include "flecs/addons/cpp/mixins/pipeline/decl.hpp"
+
 #include "food.hpp"
 #include "input.hpp"
 #include "map.hpp"
@@ -27,7 +26,7 @@ void setup(flecs::world &ecs) {
       TileMapBundle{TileMap{tilemap}, TileMapStorage{}, TileSize{8, 8}};
   ecs.set(OccupiedTiles{});
   auto food_spawn =
-      ecs.entity().set(FoodSpawner{tilemap, 5000}).set(TileMapStorage{});
+      ecs.entity().set(FoodSpawner{tilemap, 1}).set(TileMapStorage{});
   auto entity = a.spawn(ecs);
 
   gamemap.walls = entity;
@@ -61,7 +60,7 @@ void init_color(flecs::iter &it, TilePos *pos, TileType *type,
     case TileType::WALL:
       raylib::Rectangle rect(pos[i].x * size, pos[i].y * size, size, size);
       e.set(rect);
-
+      e.set(raylib::Color::Black());
       break;
     }
   }
@@ -93,16 +92,6 @@ int main(int argc, char *argv[]) {
       ecs.system<TilePos, TileType, const TileSize>().term_at(3).parent().iter(
           init_color); // init color
 
-  CollisionQuery q_collide = ecs.query<const Rectangle, const Color>();
-
-  auto sys = ecs.system<const Rectangle, const Color>("Collide")
-                 .ctx(&q_collide) // 将查询对象的地址作为上下文传递给系统
-                 .each([](flecs::iter &it, size_t i, const Rectangle r1,
-                          const Color c1) {
-                   CollisionQuery *q = it.ctx<CollisionQuery>();
-                   flecs::entity e1 = it.entity(i);
-                 });
-
   auto draw_rect =
       ecs.system<raylib::Rectangle, raylib::Color>().term_at(2).optional().iter(
           draw_rects);                            // draw rect
@@ -123,7 +112,7 @@ int main(int argc, char *argv[]) {
   auto controller = input_system(ecs);
   snake_system3.interval(0.1);
   snake_system3.depends_on(flecs::PreUpdate);
-  snake_system4.depends_on(flecs::PostUpdate);
+  snake_system4.depends_on(flecs::OnUpdate);
   controller.depends_on(flecs::PostUpdate);
   int screenWidth = 1600;
   int screenHeight = 900;
@@ -134,7 +123,7 @@ int main(int argc, char *argv[]) {
                       .set<SnakeSpawn>(SnakeSpawn{
                           {TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
                       .set<Direction>(Direction::DOWN);
-  printf("%d\n", snake_id.id());
+  printf("%llu\n", snake_id.id());
   ecs.entity()
       .set<ZmqServerRef>(ZmqServerRef{std::make_shared<ZmqServer>()})
       .set<ServerAddress>({"tcp://127.0.0.1:5551"});
