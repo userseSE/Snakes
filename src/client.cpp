@@ -21,13 +21,13 @@ void init_zmq(flecs::iter &it) {
   printf("connect to server\n");
   auto &client = *it.world().get_mut<ZmqClientRef>();        // 获取客户端
   client->connect(it.world().get<ServerAddress>()->c_str()); // 连接服务器
-  printf("server connected\n");
+
 }
 
 void control_cmd(flecs::iter &it, Direction *directions,
                  SnakeController *controller) {
   // 发送控制命令到服务器
-  printf("start cmd parsing\n");
+
   auto &client = *it.world().get_mut<ZmqClientRef>(); // 获取客户端
   json cmd;
   cmd["type"] = CONTROL;
@@ -41,7 +41,7 @@ void control_cmd(flecs::iter &it, Direction *directions,
   
 
   socket.send(msg, zmq::send_flags::none); // 发送消息
-  printf("send %s\n", cmd.dump().c_str());
+
   auto recv = socket.recv(msg, zmq::recv_flags::none); // 接收消息
 }
 

@@ -35,7 +35,6 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
   auto decompressed_data = buff.decompress(message.to_string_view());
   auto json_msg = json::parse(decompressed_data); // 解析json
 
-  printf("%s\n", message.to_string_view().data()); // 打印json
   auto cmdtype = json_msg["type"].get<int>();      // 获取json中的type
   json reply_msg;                                  // 创建回复json
   reply_msg["type"] = REPLY;                       // 设置回复json的type
@@ -51,12 +50,11 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
   }
 
   case (int)GRAPH: {
-    printf("prepare graph\n");
+  
     // auto player_id = json_msg["id"].get<flecs::entity_t>(); //获取玩家id
     auto queryRect = it.system().get<CollisionQuery>();
 
-    // auto queryRect = it.ctx<CollisionQuery>();
-    printf("query graph\n");
+  
     reply_msg["type"] = GRAPH_REPLY;
     reply_msg["rect"] = std::vector<raylib::Rectangle>();
     reply_msg["color"] = std::vector<raylib::Color>();

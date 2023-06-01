@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
     // 清除屏幕
     BeginDrawing();
     { window.ClearBackground(RAYWHITE); }
-     printf("recv %d\n", ecs.count<raylib::Color>());
+
     // 遍历每个实体并绘制矩形
     queryRect.each([&](raylib::Rectangle &rect, raylib::Color &color) {
       DrawRectangleRec(rect, color);
