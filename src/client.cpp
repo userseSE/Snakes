@@ -12,7 +12,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <stdio.h>
-
+#include "zstdcpp.hpp"
 using json = nlohmann::json;
 
 enum { CONTROL, GRAPH, AUTH, REPLY, GRAPH_REPLY, AUTH_REPLY };
@@ -34,8 +34,12 @@ void control_cmd(flecs::iter &it, Direction *directions,
   cmd["id"] = controller[0].player_id;
   cmd["cmd"] = directions[0];
 
+  zstd buff;
+  auto msg_data = buff.compress(cmd.dump(), 3);
+  zmq::message_t msg{ msg_data};          // 创建消息
   auto &socket = client->socket();         // 获取socket
-  zmq::message_t msg{cmd.dump()};          // 创建消息
+  
+
   socket.send(msg, zmq::send_flags::none); // 发送消息
   printf("send %s\n", cmd.dump().c_str());
   auto recv = socket.recv(msg, zmq::recv_flags::none); // 接收消息
@@ -47,9 +51,11 @@ void graph_show(flecs::iter &it) {
   auto &client = *it.world().get_mut<ZmqClientRef>(); // 获取客户端
   json graph;
   graph["type"] = GRAPH;
-
+  zstd buff;
+  auto msg_data = buff.compress(graph.dump(), 3);
+  zmq::message_t msg{msg_data};
   auto &socket = client->socket();         // 获取socket
-  zmq::message_t msg{graph.dump()};        // 创建消息
+        // 创建消息
   socket.send(msg, zmq::send_flags::none); // 发送消息
 
   std::string msg_str(static_cast<const char *>(msg.data()), msg.size());
@@ -61,7 +67,7 @@ void graph_show(flecs::iter &it) {
    
   // 这次返回的结果需要进行处理，然后从接受的数据反序列化出json数据
   //  将接收到的消息解析为JSON对象
-  json received_json = json::parse(recv_msg.to_string_view());
+  json received_json = json::parse(buff.decompress(recv_msg.to_string_view()));
 
   // 从解析后的JSON对象中获取矩形和颜色信息
   if (received_json["type"] == GRAPH_REPLY) {
