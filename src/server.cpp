@@ -1,16 +1,17 @@
 #include "server.hpp"
-
 #include "input.hpp"
 #include "json_conversion.hpp"
 #include "system_helper.hpp"
 #include "zmq.hpp"
+#include <fstream>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <stdio.h>
 #include <vector>
 
 using json = nlohmann::json;
-using CollisionQuery = flecs::query<const raylib::Rectangle, const  raylib::Color>;
+using CollisionQuery =
+    flecs::query<const raylib::Rectangle, const raylib::Color>;
 
 enum { CONTROL, GRAPH, AUTH, REPLY, GRAPH_REPLY, AUTH_REPLY };
 // 初始化server，绑定地址
@@ -50,7 +51,7 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
     printf("prepare graph\n");
     // auto player_id = json_msg["id"].get<flecs::entity_t>(); //获取玩家id
     auto queryRect = it.system().get<CollisionQuery>();
-   
+
     // auto queryRect = it.ctx<CollisionQuery>();
     printf("query graph\n");
     reply_msg["type"] = GRAPH_REPLY;
@@ -58,18 +59,50 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
     reply_msg["color"] = std::vector<raylib::Color>();
     queryRect->each(
         [&](const raylib::Rectangle &rect, const raylib::Color &color) {
-          
           reply_msg["rect"].push_back(rect);
           reply_msg["color"].push_back(color);
         });
     break;
   }
 
-  case (int)AUTH:
+  case (int)AUTH: {
+    auto enteredUsername = json_msg["username"].get<std::string>();
+    auto enteredPassword = json_msg["password"].get<std::string>();
 
-    break;
+    // 从world中获取UserDatabase单例
+    // auto const &ud = it.world().get<UserDatabase>();
+    // const json& ud = it.world().get<UserDatabase>();
+    // const json& ud = reinterpret_cast<const
+    // json&>(it.world().get<UserDatabase>());
+    const UserDatabase* ud = it.world().get<UserDatabase>();
+    const json& accounts = static_cast<const json&>(*ud)["accounts"];
+
+    bool isAuthorized = false;
+
+    // 从JSON数据中提取账户名和密码
+    // 遍历账户列表
+    for (const auto &account : accounts) {
+      std::string username = account["username"];
+      std::string password = account["password"];
+
+      // 进行账号密码的判断逻辑
+      if (username == enteredUsername && password == enteredPassword) {
+        isAuthorized = true;
+        break;
+      }
+    }
+
+    if (isAuthorized) {
+      // 账号密码匹配成功
+      reply_msg["code"] = "SUCCESS";
+    } else {
+      // 账号密码匹配失败
+      reply_msg["code"] = "FAILURE";
+    }
   }
-  return zmq::message_t{reply_msg.dump()};
+
+    return zmq::message_t{reply_msg.dump()};
+  }
 }
 
 void reply_commands(flecs::iter &it, ZmqServerRef *servers) {
@@ -95,6 +128,33 @@ void reply_commands(flecs::iter &it, ZmqServerRef *servers) {
     }
   }
 }
+
+void init_id(flecs::iter &it) {
+  UserDatabase ud;
+
+  // 构建JSON文件路径，相对于exe文件所在目录
+  std::string jsonFilePath = "key.json";
+
+  // 读取JSON文件
+  std::ifstream file(jsonFilePath);
+
+  // 解析JSON文件内容
+  json data = json::parse(file);
+
+  // 将解析后的JSON对象传递给UserDatabase，将其转换为UserDatabase对象
+  ud["accounts"] = data["accounts"];
+
+  file.close();
+
+  // it.world().set(ud);
+  it.world().set<UserDatabase>(std::move(ud));
+}
+
+auto init_id_system(flecs::world &world) -> flecs::system {
+  IntoSystemBuilder system(init_id);
+  return system.build(world);
+}
+
 auto init_zmq_server_system(flecs::world &world) -> flecs::system {
   // 创建初始化 ZMQ 服务器的系统
   IntoSystemBuilder system(init_zmq_server); // 创建系统
@@ -117,6 +177,7 @@ void ZmqServerPlugin::build(flecs::world &world) {
   // 类型的参数，在该世界中创建初始化服务器系统和回复命令系统，分别指定它们在
   // flecs::OnStart 和 flecs::PreUpdate 阶段运行
 
+  init_id_system(world).depends_on(flecs::OnStart);
   init_zmq_server_system(world).depends_on(flecs::OnStart);
   reply_commands_system(world).depends_on(flecs::PreUpdate);
 }

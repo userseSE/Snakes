@@ -3,8 +3,16 @@
 #include "flecs.h"
 #include <string>
 #include <zmq.hpp>
+#include "json_conversion.hpp"
+#include <nlohmann/json.hpp>
+
+using json = nlohmann::json;
 
 struct ServerAddress : std::string {};    
+
+struct UserDatabase : json {
+  json accounts;
+};
 
 class ZmqServer {
 public:
