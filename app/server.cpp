@@ -117,11 +117,6 @@ int main(int argc, char *argv[]) {
   raylib::Color textColor = raylib::Color::LightGray();
   raylib::Window window(screenWidth, screenHeight, "贪吃蛇");
 
-  auto snake_id = ecs.entity()
-                      .set<SnakeSpawn>(SnakeSpawn{
-                          {TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
-                      .set<Direction>(Direction::DOWN);
-  printf("%llu\n", snake_id.id());
   ecs.entity()
       .set<ZmqServerRef>(ZmqServerRef{std::make_shared<ZmqServer>()})
       .set<ServerAddress>({"tcp://127.0.0.1:5551"});

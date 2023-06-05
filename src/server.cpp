@@ -1,12 +1,13 @@
 #include "server.hpp"
 #include "input.hpp"
+#include "snake.hpp"
 #include "system_helper.hpp"
 #include "zmq.hpp"
 #include <fstream>
+#include <iostream>
 #include <memory>
 #include <stdio.h>
 #include <vector>
-#include <iostream>
 
 using json = nlohmann::json;
 using CollisionQuery =
@@ -48,7 +49,9 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
 
   case (int)GRAPH: {
     printf("prepare graph\n");
-    // auto player_id = json_msg["id"].get<flecs::entity_t>(); //获取玩家id
+    auto player_id = json_msg["id"].get<flecs::entity_t>(); //获取玩家id
+    std::cout<<player_id<<std::endl;
+
     auto queryRect = it.system().get<CollisionQuery>();
 
     // auto queryRect = it.ctx<CollisionQuery>();
@@ -56,6 +59,9 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
     reply_msg["type"] = GRAPH_REPLY;
     reply_msg["rect"] = std::vector<raylib::Rectangle>();
     reply_msg["color"] = std::vector<raylib::Color>();
+
+    std::cout<<reply_msg["rect"]<<std::endl;
+
     queryRect->each(
         [&](const raylib::Rectangle &rect, const raylib::Color &color) {
           reply_msg["rect"].push_back(rect);
@@ -68,12 +74,11 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
     auto enteredUsername = json_msg["username"].get<std::string>();
     auto enteredPassword = json_msg["password"].get<std::string>();
 
+    std::cout << enteredUsername << enteredPassword << std::endl;
+
     // 从world中获取UserDatabase单例
-    // auto const &ud = it.world().get<UserDatabase>();
-    // const json& ud = it.world().get<UserDatabase>();
-    // const json& ud = reinterpret_cast<const json&>(it.world().get<UserDatabase>());
-    const UserDatabase* ud = it.world().get<UserDatabase>();
-    const json& accounts = static_cast<const json&>(*ud)["accounts"];
+    const UserDatabase *ud = it.world().get<UserDatabase>();
+    const json &accounts = static_cast<const json &>(*ud)["accounts"];
 
     bool isAuthorized = false;
 
@@ -89,10 +94,22 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
         break;
       }
     }
-
     if (isAuthorized) {
       // 账号密码匹配成功
       reply_msg["code"] = "SUCCESS";
+
+      auto snake_id = it.world()
+                          .entity()
+                          .set<SnakeSpawn>(SnakeSpawn{
+                              {TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
+                          .set<Direction>(Direction::DOWN);
+
+      std::cout<<snake_id<<std::endl;
+      // printf("%llu\n", snake_id.id());
+      
+      reply_msg["id"] = static_cast<int>(snake_id);
+      std::cout<<reply_msg["id"]<<std::endl;
+
     } else {
       // 账号密码匹配失败
       reply_msg["code"] = "FAILURE";
@@ -116,8 +133,9 @@ void reply_commands(flecs::iter &it, ZmqServerRef *servers) {
       // 接收消息,设置zmq_recv()函数在非阻塞模式下执行,如果在指定的socket中没有消息，zmq_recv()函数会执行失败
       // 阻塞模式下，当一个进程在执行输入/输出操作时，如果没有准备好数据，那么该进程将被挂起，直到数据准备好为止。
       // 非阻塞模式下，当一个进程在执行输入/输出操作时，如果没有准备好数据，那么该进程将立即返回一个错误代码，而不是被挂起。
-      if (success.has_value()) {                   // 如果接收成功
-        auto reply = handle_message(message, it);  // 处理消息
+      if (success.has_value()) {                  // 如果接收成功
+        auto reply = handle_message(message, it); // 处理消息
+        std::cout << reply << std::endl;
         socket.send(reply, zmq::send_flags::none); // 发送回复
       } else {
         break;
@@ -126,7 +144,7 @@ void reply_commands(flecs::iter &it, ZmqServerRef *servers) {
   }
 }
 
-void init_id(flecs::iter &it) {
+void init_user(flecs::iter &it) {
   UserDatabase ud;
 
   // 构建JSON文件路径，相对于exe文件所在目录
@@ -149,8 +167,8 @@ void init_id(flecs::iter &it) {
   it.world().set<UserDatabase>(std::move(ud));
 }
 
-auto init_id_system(flecs::world &world) -> flecs::system {
-  IntoSystemBuilder system(init_id);
+auto init_user_system(flecs::world &world) -> flecs::system {
+  IntoSystemBuilder system(init_user);
   return system.build(world);
 }
 
@@ -176,7 +194,7 @@ void ZmqServerPlugin::build(flecs::world &world) {
   // 类型的参数，在该世界中创建初始化服务器系统和回复命令系统，分别指定它们在
   // flecs::OnStart 和 flecs::PreUpdate 阶段运行
 
-  init_id_system(world).depends_on(flecs::OnStart);
+  init_user_system(world).depends_on(flecs::OnStart);
   init_zmq_server_system(world).depends_on(flecs::OnStart);
   reply_commands_system(world).depends_on(flecs::PreUpdate);
 }

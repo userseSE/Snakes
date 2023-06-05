@@ -7,6 +7,7 @@
 #include "zmq.hpp"
 #include <corecrt_malloc.h>
 #include <exception>
+#include <fstream>
 #include <iostream>
 #include <stdio.h>
 
@@ -21,13 +22,14 @@ void init_zmq(flecs::iter &it) {
   printf("server connected\n");
 }
 
-void control_cmd(flecs::iter &it, Direction *directions,
-                 SnakeController *controller) {
+void control_cmd(flecs::iter &it, Direction *directions) {
+  auto controller = it.world().get_mut<SnakeController>();
   // 发送控制命令到服务器
   printf("start cmd parsing\n");
   auto &client = *it.world().get_mut<ZmqClientRef>(); // 获取客户端
   json cmd;
   cmd["type"] = CONTROL;
+  // 获取SnakeController组件
   cmd["id"] = controller[0].player_id;
   cmd["cmd"] = directions[0];
 
@@ -51,14 +53,15 @@ void graph_show(flecs::iter &it) {
 
   std::string msg_str(static_cast<const char *>(msg.data()), msg.size());
 
-
   // 接收消息
   zmq::message_t recv_msg;
   auto recv = socket.recv(recv_msg, zmq::recv_flags::none); // 接收消息
-   
+
   // 这次返回的结果需要进行处理，然后从接受的数据反序列化出json数据
   //  将接收到的消息解析为JSON对象
   json received_json = json::parse(recv_msg.to_string_view());
+
+  std::cout<<received_json<<std::endl;
 
   // 从解析后的JSON对象中获取矩形和颜色信息
   if (received_json["type"] == GRAPH_REPLY) {
@@ -84,6 +87,59 @@ void graph_show(flecs::iter &it) {
   }
 }
 
+void user_verify(flecs::iter &it) {
+  UserDatabase ud;
+
+  // 构建JSON文件路径，相对于exe文件所在目录
+  std::string jsonFilePath = "clientInfo.json";
+  // 读取JSON文件
+  std::ifstream file(jsonFilePath);
+  // 解析JSON文件内容
+  json data = json::parse(file);
+
+  // 将解析后的JSON对象传递给UserDatabase，将其转换为UserDatabase对象
+  ud["username"] = data["username"];
+  ud["password"] = data["password"];
+  std::cout << ud << std::endl;
+
+  file.close();
+  // it.world().set(ud);
+  it.world().set<UserDatabase>(ud);
+
+  // 向服务端发送userdatabase对象
+  auto &client = *it.world().get_mut<ZmqClientRef>(); // 获取客户端
+
+  ud["type"] = AUTH;
+
+  auto &socket = client->socket();         // 获取socket
+  zmq::message_t msg{ud.dump()};           // 创建消息
+  socket.send(msg, zmq::send_flags::none); // 发送消息
+  std::string msg_str(static_cast<const char *>(msg.data()), msg.size());
+  // 接收消息
+  zmq::message_t recv_msg;
+  auto recv = socket.recv(recv_msg, zmq::recv_flags::none); // 接收消息
+  json received_json = json::parse(recv_msg.to_string_view());
+
+  std::cout<<received_json<<std::endl;
+
+  if (received_json["code"] == "SUCCESS") {
+
+    SnakeController controller;
+    controller.player_id = received_json["id"].get<int>();
+    std::cout << controller.player_id << std::endl;
+
+    // 将SnakeController组件设置到全局实体上
+    it.world().set<SnakeController>(controller);
+
+  } else {
+  }
+}
+
+auto user_verify_system(flecs::world &world) -> flecs::system {
+  IntoSystemBuilder system(user_verify);
+  return system.build(world);
+}
+
 void ZmqClientPlugin::build(flecs::world &world) {
   // 构建函数，用于在ECS世界中构建 ZMQ 客户端
 
@@ -91,6 +147,7 @@ void ZmqClientPlugin::build(flecs::world &world) {
   IntoSystemBuilder system(control_cmd);
   IntoSystemBuilder system2(graph_show);
 
+  user_verify_system(world).depends_on(flecs::OnStart);
   system.build(world);
   system2.build(world);
 }
