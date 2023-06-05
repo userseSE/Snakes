@@ -26,7 +26,7 @@ void setup(flecs::world &ecs) {
       TileMapBundle{TileMap{tilemap}, TileMapStorage{}, TileSize{8, 8}};
   ecs.set(OccupiedTiles{});
   auto food_spawn =
-      ecs.entity().set(FoodSpawner{tilemap, 1}).set(TileMapStorage{});
+      ecs.entity().set(FoodSpawner{tilemap, 5000}).set(TileMapStorage{});
   auto entity = a.spawn(ecs);
 
   gamemap.walls = entity;
