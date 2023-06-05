@@ -1,8 +1,6 @@
 #include "server.hpp"
 #include "Color.hpp"
-
 #include "flecs.h"
-
 #include "food.hpp"
 #include "input.hpp"
 #include "map.hpp"

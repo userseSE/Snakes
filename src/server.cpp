@@ -1,13 +1,12 @@
 #include "server.hpp"
 #include "input.hpp"
-#include "json_conversion.hpp"
 #include "system_helper.hpp"
 #include "zmq.hpp"
 #include <fstream>
 #include <memory>
-#include <nlohmann/json.hpp>
 #include <stdio.h>
 #include <vector>
+#include <iostream>
 
 using json = nlohmann::json;
 using CollisionQuery =
@@ -72,8 +71,7 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
     // 从world中获取UserDatabase单例
     // auto const &ud = it.world().get<UserDatabase>();
     // const json& ud = it.world().get<UserDatabase>();
-    // const json& ud = reinterpret_cast<const
-    // json&>(it.world().get<UserDatabase>());
+    // const json& ud = reinterpret_cast<const json&>(it.world().get<UserDatabase>());
     const UserDatabase* ud = it.world().get<UserDatabase>();
     const json& accounts = static_cast<const json&>(*ud)["accounts"];
 
@@ -100,7 +98,6 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
       reply_msg["code"] = "FAILURE";
     }
   }
-
     return zmq::message_t{reply_msg.dump()};
   }
 }
@@ -143,6 +140,8 @@ void init_id(flecs::iter &it) {
 
   // 将解析后的JSON对象传递给UserDatabase，将其转换为UserDatabase对象
   ud["accounts"] = data["accounts"];
+
+  std::cout << ud << std::endl;
 
   file.close();
 
