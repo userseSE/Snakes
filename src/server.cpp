@@ -31,6 +31,7 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
   // 首先将接收到的消息解析为 JSON 格式，然后打印消息内容
 
   auto json_msg = json::parse(message.to_string_view()); // 解析json
+  std::cout<<"recv:"<<json_msg<<std::endl;
 
   printf("%s\n", message.to_string_view().data()); // 打印json
   auto cmdtype = json_msg["type"].get<int>();      // 获取json中的type
@@ -41,6 +42,7 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
 
   case (int)CONTROL: { // 如果是控制命令
     auto player_id = json_msg["id"].get<flecs::entity_t>(); // 获取玩家id
+    std::cout <<"contrl:"<< player_id << std::endl;
     auto cmd = json_msg["cmd"].get<int>();                  // 获取命令
     it.world().entity(player_id).set<Direction>(cmd); // 设置玩家的方向
 
@@ -49,23 +51,25 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
 
   case (int)GRAPH: {
     printf("prepare graph\n");
-    auto player_id = json_msg["id"].get<flecs::entity_t>(); //获取玩家id
-    std::cout<<player_id<<std::endl;
+    auto player_id = json_msg["id"].get<flecs::entity_t>(); // 获取玩家id
+    std::cout << player_id << std::endl;
 
     auto queryRect = it.system().get<CollisionQuery>();
 
     // auto queryRect = it.ctx<CollisionQuery>();
     printf("query graph\n");
+    flecs::entity_t entity_id =it.world().entity().id();
+    std::cout<<entity_id<<std::endl;
+
     reply_msg["type"] = GRAPH_REPLY;
     reply_msg["rect"] = std::vector<raylib::Rectangle>();
     reply_msg["color"] = std::vector<raylib::Color>();
-
-    std::cout<<reply_msg["rect"]<<std::endl;
 
     queryRect->each(
         [&](const raylib::Rectangle &rect, const raylib::Color &color) {
           reply_msg["rect"].push_back(rect);
           reply_msg["color"].push_back(color);
+          // std::cout << reply_msg["color"] << std::endl;
         });
     break;
   }
@@ -98,22 +102,30 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
       // 账号密码匹配成功
       reply_msg["code"] = "SUCCESS";
 
-      auto snake_id = it.world()
-                          .entity()
-                          .set<SnakeSpawn>(SnakeSpawn{
-                              {TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
-                          .set<Direction>(Direction::DOWN);
+      flecs::entity_t snake_id = it.world().entity()
+              .set<SnakeSpawn>(
+                  SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
+              .set<Direction>(Direction::DOWN)
+              .id();
 
-      std::cout<<snake_id<<std::endl;
+      // auto snake_id = it.world()
+      //                     .entity()
+      //                     .set<SnakeSpawn>(SnakeSpawn{
+      //                         {TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
+      //                     .set<Direction>(Direction::DOWN);
+
+      std::cout << snake_id << std::endl;
       // printf("%llu\n", snake_id.id());
-      
+
       reply_msg["id"] = static_cast<int>(snake_id);
-      std::cout<<reply_msg["id"]<<std::endl;
+
+      std::cout << reply_msg["id"] << std::endl;
 
     } else {
       // 账号密码匹配失败
       reply_msg["code"] = "FAILURE";
     }
+    break;
   }
     return zmq::message_t{reply_msg.dump()};
   }
@@ -126,7 +138,8 @@ void reply_commands(flecs::iter &it, ZmqServerRef *servers) {
     auto &server = servers[i];       // 获取server
     auto &socket = server->socket(); // 获取socket
     zmq::message_t message;          // 创建消息
-    while (true) {
+    bool continue_loop = true;       // 添加退出条件
+    while (continue_loop) {
       // 接收一个消息，如果接收成功，则调用 handle_message
       // 函数处理消息并生成回复，最后将回复消息发送给客户端
       auto success = socket.recv(message, zmq::recv_flags::dontwait);
@@ -135,10 +148,10 @@ void reply_commands(flecs::iter &it, ZmqServerRef *servers) {
       // 非阻塞模式下，当一个进程在执行输入/输出操作时，如果没有准备好数据，那么该进程将立即返回一个错误代码，而不是被挂起。
       if (success.has_value()) {                  // 如果接收成功
         auto reply = handle_message(message, it); // 处理消息
-        std::cout << reply << std::endl;
+        std::cout <<"reply:"<<reply << std::endl;
         socket.send(reply, zmq::send_flags::none); // 发送回复
       } else {
-        break;
+        continue_loop = false; // 没有消息时退出循环
       }
     }
   }

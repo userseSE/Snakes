@@ -37,10 +37,15 @@ void control_cmd(flecs::iter &it, Direction *directions) {
   zmq::message_t msg{cmd.dump()};          // 创建消息
   socket.send(msg, zmq::send_flags::none); // 发送消息
   printf("send %s\n", cmd.dump().c_str());
+
   auto recv = socket.recv(msg, zmq::recv_flags::none); // 接收消息
+  std::cout << recv.value() << std::endl;
+  printf("test ctrl cmd complete\n");
 }
 
 void graph_show(flecs::iter &it) {
+
+  printf("test graph\n");
 
   // 请求服务器发送图形数据
   auto &client = *it.world().get_mut<ZmqClientRef>(); // 获取客户端
@@ -52,6 +57,8 @@ void graph_show(flecs::iter &it) {
   socket.send(msg, zmq::send_flags::none); // 发送消息
 
   std::string msg_str(static_cast<const char *>(msg.data()), msg.size());
+
+  std::cout<<msg_str<<std::endl;
 
   // 接收消息
   zmq::message_t recv_msg;
@@ -67,6 +74,9 @@ void graph_show(flecs::iter &it) {
   if (received_json["type"] == GRAPH_REPLY) {
     std::vector<raylib::Rectangle> received_rects =
         received_json["rect"].get<std::vector<raylib::Rectangle>>();
+    for (const auto& rect : received_rects) {
+    std::cout << "Rectangle: x = " << rect.x << ", y = " << rect.y << ", width = " << rect.width << ", height = " << rect.height << std::endl;
+}
     std::vector<raylib::Color> received_colors =
         received_json["color"].get<std::vector<raylib::Color>>();
 
@@ -144,10 +154,10 @@ void ZmqClientPlugin::build(flecs::world &world) {
   // 构建函数，用于在ECS世界中构建 ZMQ 客户端
 
   init_zmq_client_system(world).depends_on(flecs::OnStart);
+  user_verify_system(world).depends_on(flecs::OnStart);
   IntoSystemBuilder system(control_cmd);
   IntoSystemBuilder system2(graph_show);
 
-  user_verify_system(world).depends_on(flecs::OnStart);
   system.build(world);
   system2.build(world);
 }
