@@ -10,12 +10,14 @@
 #include "Color.hpp"
 #include "Rectangle.hpp"
 #include "bundle.hpp"
+#include "flecs/addons/cpp/mixins/id/decl.hpp"
 #include "food.hpp"
 #include "input.hpp"
 #include "map.hpp"
 #include "utils.hpp"
 #include <algorithm>
 #include <stdio.h>
+#include <iostream>
 
 using SnakeBodyBundle =
     basic::Bundle<SnakeBody, TilePos, TileSize, raylib::Color>;
@@ -30,8 +32,11 @@ using SnakeBodyBundle =
 void init_snake_bodies(flecs::iter &it, SnakeSpawn *snakes) {
 
   auto snake = Snake{};                  // Snake component
+  // printf("init_snake_bodies\n");
   for (int i = 0; i < it.count(); i++) { // For each entity with SnakeSpawn
     auto snakedata = snakes[i];          // Get SnakeSpawn component
+
+    // std::cout<<it.system().name()<<std::endl;
 
     SnakeBodyBundle body =
         SnakeBodyBundle{                            // Create SnakeBodyBundle
@@ -93,6 +98,8 @@ void init_snake_graphic(flecs::iter &it, SnakeBody *snakes, TilePos *pos,
                            size[i].x, size[i].y); // Create rectangle
 
     it.entity(i).set(rect); // Set rectangle component
+
+    // std::cout<<it.entity(i).id()<<std::endl;
   }
 }
 

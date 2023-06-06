@@ -14,10 +14,34 @@ using CollisionQuery =
     flecs::query<const raylib::Rectangle, const raylib::Color>;
 
 enum { CONTROL, GRAPH, AUTH, REPLY, GRAPH_REPLY, AUTH_REPLY };
+
+//获取ip
+void init_ip(flecs::iter &it) {
+  // 构建JSON文件路径，相对于exe文件所在目录
+  std::string jsonFilePath = "config_server.json";
+
+  // 读取JSON文件
+  std::ifstream file(jsonFilePath);
+
+  // 解析JSON文件内容
+  json data = json::parse(file);
+
+  // 将解析后的JSON对象传递给UserDatabase，将其转换为UserDatabase对象
+  auto ip = data["ip"];
+
+  std::cout << ip << std::endl;
+
+  file.close();
+
+  it.world().entity()
+    .set<ZmqServerRef>(ZmqServerRef{std::make_shared<ZmqServer>()})
+    .set<ServerAddress>(ip);
+}
+
 // 初始化server，绑定地址
 void init_zmq_server(flecs::iter &it, ZmqServerRef *server,
                      ServerAddress *bind_address) {
-  printf("test server up:\n");
+  // printf("test server up:\n");
   for (auto i = 0; i < it.count(); i++) {
     // 通过循环遍历服务器的数量，依次将服务器绑定到对应的地址，并打印服务器地址
     server[i]->bind(bind_address[i].c_str());
@@ -51,15 +75,20 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
 
   case (int)GRAPH: {
     printf("prepare graph\n");
-    auto player_id = json_msg["id"].get<flecs::entity_t>(); // 获取玩家id
-    std::cout << player_id << std::endl;
-
+    if(json_msg.contains("id")){
+      auto player_id = json_msg["id"].get<flecs::entity_t>(); // 获取玩家id
+      std::cout << player_id << std::endl;
+    }else{
+      reply_msg["code"] = "BAD ID";
+      break;
+    }
+    
     auto queryRect = it.system().get<CollisionQuery>();
 
     // auto queryRect = it.ctx<CollisionQuery>();
     printf("query graph\n");
-    flecs::entity_t entity_id =it.world().entity().id();
-    std::cout<<entity_id<<std::endl;
+    // flecs::entity_t entity_id =it.world().entity().id();
+    // std::cout<<entity_id<<std::endl;
 
     reply_msg["type"] = GRAPH_REPLY;
     reply_msg["rect"] = std::vector<raylib::Rectangle>();
@@ -82,7 +111,7 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
 
     // 从world中获取UserDatabase单例
     const UserDatabase *ud = it.world().get<UserDatabase>();
-    const json &accounts = static_cast<const json &>(*ud)["accounts"];
+    const json &accounts = (*ud)["accounts"];
 
     bool isAuthorized = false;
 
@@ -105,14 +134,7 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
       flecs::entity_t snake_id = it.world().entity()
               .set<SnakeSpawn>(
                   SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
-              .set<Direction>(Direction::DOWN)
-              .id();
-
-      // auto snake_id = it.world()
-      //                     .entity()
-      //                     .set<SnakeSpawn>(SnakeSpawn{
-      //                         {TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
-      //                     .set<Direction>(Direction::DOWN);
+              .set<Direction>(Direction::DOWN);
 
       std::cout << snake_id << std::endl;
       // printf("%llu\n", snake_id.id());
@@ -127,8 +149,8 @@ auto handle_message(zmq::message_t &message, flecs::iter &it)
     }
     break;
   }
-    return zmq::message_t{reply_msg.dump()};
   }
+   return zmq::message_t{reply_msg.dump()};
 }
 
 void reply_commands(flecs::iter &it, ZmqServerRef *servers) {
@@ -185,6 +207,11 @@ auto init_user_system(flecs::world &world) -> flecs::system {
   return system.build(world);
 }
 
+auto init_ip_system(flecs::world &world) -> flecs::system {
+  IntoSystemBuilder system(init_ip);
+  return system.build(world);
+}
+
 auto init_zmq_server_system(flecs::world &world) -> flecs::system {
   // 创建初始化 ZMQ 服务器的系统
   IntoSystemBuilder system(init_zmq_server); // 创建系统
@@ -207,7 +234,8 @@ void ZmqServerPlugin::build(flecs::world &world) {
   // 类型的参数，在该世界中创建初始化服务器系统和回复命令系统，分别指定它们在
   // flecs::OnStart 和 flecs::PreUpdate 阶段运行
 
+  auto sys=init_ip_system(world).depends_on(flecs::OnStart);
   init_user_system(world).depends_on(flecs::OnStart);
-  init_zmq_server_system(world).depends_on(flecs::OnStart);
+  init_zmq_server_system(world).depends_on(sys);
   reply_commands_system(world).depends_on(flecs::PreUpdate);
 }

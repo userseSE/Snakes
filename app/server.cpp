@@ -1,6 +1,7 @@
 #include "server.hpp"
 #include "Color.hpp"
 #include "flecs.h"
+#include "flecs/addons/cpp/mixins/pipeline/decl.hpp"
 #include "food.hpp"
 #include "input.hpp"
 #include "map.hpp"
@@ -15,6 +16,8 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+#include <fstream>
+
 using CollisionQuery = flecs::query<const Rectangle, const Color>;
 
 void setup(flecs::world &ecs) {
@@ -93,6 +96,9 @@ int main(int argc, char *argv[]) {
   auto draw_rect =
       ecs.system<raylib::Rectangle, raylib::Color>().term_at(2).optional().iter(
           draw_rects);                            // draw rect
+
+  // ecs.system<SnakeSpawn>("init_snake_bodies").iter(init_snake_bodies); // init snake
+
   IntoSystemBuilder builder(init_snake_bodies);   // init snake
   IntoSystemBuilder builder2(init_snake_graphic); // init snake graphic
   IntoSystemBuilder move_snake_system(move_snake);
@@ -104,23 +110,22 @@ int main(int argc, char *argv[]) {
 
   p1.build(ecs);
   auto snake_system = builder.build(ecs);
+  snake_system.set_name("init_system_bodies");
   auto snake_system2 = builder2.build(ecs);
   auto snake_system3 = move_snake_system.build(ecs);
   auto snake_system4 = update_render_snake_system.build(ecs);
   auto controller = input_system(ecs);
   snake_system3.interval(0.1);
+  snake_system.depends_on(flecs::PreUpdate);
   snake_system3.depends_on(flecs::PreUpdate);
   snake_system4.depends_on(flecs::OnUpdate);
   controller.depends_on(flecs::PostUpdate);
   int screenWidth = 1600;
   int screenHeight = 900;
   raylib::Color textColor = raylib::Color::LightGray();
-  raylib::Window window(screenWidth, screenHeight, "贪吃蛇");
-
-  ecs.entity()
-      .set<ZmqServerRef>(ZmqServerRef{std::make_shared<ZmqServer>()})
-      .set<ServerAddress>({"tcp://127.0.0.1:5551"});
-  snake_system.depends_on(flecs::OnStart);
+  raylib::Window window(screenWidth, screenHeight, "贪吃蛇服务端");
+      
+  // snake_system.depends_on(flecs::OnStart);
 
   system.depends_on(flecs::OnStart);
 
