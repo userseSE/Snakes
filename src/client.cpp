@@ -51,40 +51,27 @@ void control_cmd(flecs::iter &it) {
 }
 
 void graph_show(flecs::iter &it) {
-
   // 请求服务器发送图形数据
-  auto &client = *it.world().get_mut<ZmqClientRef>(); // 获取客户端
+  auto &client = *it.world().get_mut<ZmqClientRef>();
   json graph;
   graph["type"] = GRAPH;
+  graph["id"] = it.world().get<SnakeController>()->player_id;
+
   zstd buff;
   auto msg_data = buff.compress(graph.dump(), 3);
   zmq::message_t msg{msg_data};
-  graph["id"] = it.world().get<SnakeController>()->player_id;
 
-  auto &socket = client->socket();         // 获取socket
-                                           // 创建消息
-  socket.send(msg, zmq::send_flags::none); // 发送消息
+  auto &socket = client->socket();
+  socket.send(msg, zmq::send_flags::none);
 
-  std::string msg_str(static_cast<const char *>(msg.data()), msg.size());
-
-  std::cout << msg_str << std::endl;
-
-  // 接收消息
   zmq::message_t recv_msg;
-  auto recv = socket.recv(recv_msg, zmq::recv_flags::none); // 接收消息
+  auto recv = socket.recv(recv_msg, zmq::recv_flags::none);
 
-  // 这次返回的结果需要进行处理，然后从接受的数据反序列化出json数据
-  //  将接收到的消息解析为JSON对象
   json received_json = json::parse(buff.decompress(recv_msg.to_string_view()));
 
-  // 从解析后的JSON对象中获取矩形和颜色信息
   if (received_json["type"] == GRAPH_REPLY) {
     std::vector<raylib::Rectangle> received_rects =
         received_json["rect"].get<std::vector<raylib::Rectangle>>();
-    //     for (const auto& rect : received_rects) {
-    //     std::cout << "Rectangle: x = " << rect.x << ", y = " << rect.y << ",
-    //     width = " << rect.width << ", height = " << rect.height << std::endl;
-    // }
     std::vector<raylib::Color> received_colors =
         received_json["color"].get<std::vector<raylib::Color>>();
 
@@ -96,9 +83,9 @@ void graph_show(flecs::iter &it) {
         !received_rects.empty()) {
       it.world().defer_begin();
       for (size_t i = 0; i < received_rects.size(); ++i) {
-        auto e = it.world().entity();                // 创建一个实体
-        e.set<raylib::Rectangle>(received_rects[i]); // 插入矩形组件
-        e.set<raylib::Color>(received_colors[i]);    // 插入颜色组件
+        auto e = it.world().entity();
+        e.set<raylib::Rectangle>(received_rects[i]);
+        e.set<raylib::Color>(received_colors[i]);
       }
       it.world().defer_end();
     }
