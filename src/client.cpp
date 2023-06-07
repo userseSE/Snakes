@@ -1,13 +1,10 @@
 #include "client.hpp"
 #include "Color.hpp"
-#include "flecs/addons/cpp/c_types.hpp"
-#include "flecs/addons/cpp/mixins/pipeline/decl.hpp"
 #include "input.hpp"
 #include "server.hpp"
 #include "system_helper.hpp"
 #include "zmq.hpp"
 #include "zstdcpp.hpp"
-#include <corecrt_malloc.h>
 #include <exception>
 #include <fstream>
 #include <iostream>
