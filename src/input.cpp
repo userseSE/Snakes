@@ -1,6 +1,7 @@
 #include "input.hpp"
 #include "flecs/addons/cpp/iter.hpp"
 #include "system_helper.hpp"
+#include <iostream>
 
 auto handle_input() -> std::optional<Direction> {
   std::optional<Direction> dir = std::nullopt;
@@ -37,23 +38,26 @@ Direction oppositeDirection(Direction dir) {
   }
 }
 
-inline void controller(flecs::iter &it, SnakeController *controller) {
-  for (int i = 0; i < it.count(); i++) {
-    auto s = handle_input();
-    if (!s.has_value()) {
-      continue;
-    }
+inline void controller(flecs::iter &it) {
+  auto snakeController = it.world().get<SnakeController>();
 
-    auto newDirection = s.value();
-    auto currentDirection = it.entity(i).get_mut<Direction>();
-    if (!currentDirection) {
-      it.entity(i).set(newDirection);
-      continue;
-    }
+  auto s = handle_input();
 
-    if (newDirection != oppositeDirection(*currentDirection)) {
-      *currentDirection = newDirection;
-    }
+  
+  if (!s.has_value()) {
+    
+    return ;
+  }
+
+  std::cout<<static_cast<int>(s.value())<<std::endl;
+
+  auto newDirection = s.value();
+  auto currentDirection = it.world().get_mut<Direction>();
+  if (!currentDirection) {
+    it.world().set(newDirection);
+  }
+  if (newDirection != oppositeDirection(*currentDirection)) {
+    *currentDirection = newDirection;
   }
 }
 auto input_system(flecs::world &world) -> flecs::system {

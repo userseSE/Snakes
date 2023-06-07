@@ -1,12 +1,10 @@
-
+#pragma once
 #include "input.hpp"
 #include "server.hpp"
 #include "system_helper.hpp"
+#include<nlohmann/json.hpp>
 #include "zmq.hpp"
 #include <memory>
-#include <nlohmann/json.hpp>
-
-using json = nlohmann::json;  
 
 class ZmqClient { 
 public:

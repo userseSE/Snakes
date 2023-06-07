@@ -3,8 +3,13 @@
 #include "flecs.h"
 #include <string>
 #include <zmq.hpp>
+#include <nlohmann/json.hpp>
+#include "json_conversion.hpp"
+
 
 struct ServerAddress : std::string {};    
+
+struct UserDatabase : json {};
 
 class ZmqServer {
 public:
@@ -26,6 +31,8 @@ struct ZmqServerPlugin {
 };
 
 class ZmqServerRef : public std::shared_ptr<ZmqServer> {};
+
+auto init_id_system(flecs::world &world)-> flecs::system;
 
 auto init_zmq_server_system(flecs::world &world) -> flecs::system;
 

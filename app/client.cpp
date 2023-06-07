@@ -2,6 +2,7 @@
 #include "Color.hpp"
 #include "Rectangle.hpp"
 #include "flecs.h"
+#include "flecs/addons/cpp/world.hpp"
 #include "food.hpp"
 #include "input.hpp"
 #include "map.hpp"
@@ -14,9 +15,11 @@
 #include <iostream>
 #include <memory>
 #include <stdio.h>
+#include <string>
 #include <tuple>
 #include <utility>
 #include <vector>
+#include <fstream>
 
 void setup(flecs::world &ecs) {
   // 设置图块地图和游戏地图的初始状态
@@ -78,6 +81,27 @@ void draw_rects(flecs::iter &it, raylib::Rectangle *rects,
   }
 }
 
+//获取ip
+std::string init_ip(flecs::world &ecs) {
+  // 构建JSON文件路径，相对于exe文件所在目录
+  std::string jsonFilePath = "config_client.json";
+
+  // 读取JSON文件
+  std::ifstream file(jsonFilePath);
+
+  // 解析JSON文件内容
+  json data = json::parse(file);
+
+  // 将解析后的JSON对象传递给UserDatabase，将其转换为UserDatabase对象
+  std::string ip = data["ip"];
+
+  std::cout << ip << std::endl;
+
+  file.close();
+
+  return ip;
+}
+
 int main(int argc, char *argv[]) {
   // Initialization
   //--------------------------------------------------------------------------------------
@@ -87,11 +111,16 @@ int main(int argc, char *argv[]) {
 
   ZmqClientPlugin client;
 
-  ecs.set<ZmqClientRef>(
-      std::move(ZmqClientRef{std::make_shared<ZmqClient>(2)}));
-
-  ecs.set<ServerAddress>({"tcp://127.0.0.1:5551"});
   client.build(ecs);
+
+  ecs.set<ZmqClientRef>(
+      ZmqClientRef{std::make_shared<ZmqClient>(2)});
+  
+  std::string ip=init_ip(ecs);
+  ecs.set<ServerAddress>({ip});
+
+  std::cout << ecs.get<ServerAddress>() << std::endl;
+
 
   auto controller = input_system(ecs); // input
 
@@ -101,12 +130,6 @@ int main(int argc, char *argv[]) {
   int screenHeight = 900;
 
   raylib::Window window(screenWidth, screenHeight, "贪吃蛇");
-
-  ecs.entity()
-      .set<SnakeSpawn>(
-          SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
-      .set<Direction>(Direction::RIGHT)
-      .set<SnakeController>({990});
 
   // snake_system.depends_on(flecs::OnStart);
   // system.depends_on(flecs::OnStart);
