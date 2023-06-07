@@ -7,7 +7,7 @@ orbs:
 jobs:
     linux-gcc:
         docker:
-            - image: cimg/base:current-22.04
+            - image: cimg/base:current-20.04
         environment:
             CC: gcc-12
             CXX: g++-12
@@ -35,9 +35,13 @@ jobs:
                       git submodule init && git submodule update --depth=1
                       cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DVCPKG_LIBRARY_LINKAGE=static -DCMAKE_TOOLCHAIN_FILE="$TOOLCHAIN" -DUSE_SANITIZER=address -B "$BUILD_DIR"
                       cmake --build "$BUILD_DIR" --config Release --target install  -j 
+            - run:
+                  name: Compress Artifacts
+                  command: |
+                      tar -cvzf release-x64-gcc-linux.tar ~/project/bin
             - store_artifacts:
-                    path: ~/project/bin
-                    destination: release-x64-gcc-linux.zip
+                    path: release-x64-gcc-linux.tar
+                    destination: release-x64-gcc-linux.tar
 
     # linux-clang-libcpp:
     #     docker:
