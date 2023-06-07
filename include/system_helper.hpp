@@ -102,7 +102,7 @@ public:
   explicit WorldWrapper(flecs::world &world) : world_(world) {}
 
   template <typename F> void add_system(F &&f) {
-    add_system(flecs::world & world, Func && f);
+    add_system(world_,  f);
   }
 
   operator flecs::world &() { return world_; }
