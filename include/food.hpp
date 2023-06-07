@@ -1,21 +1,17 @@
 #pragma once
 
-#include <flecs.h>
 #include "map.hpp"
 #include "snake.hpp"
+#include <flecs.h>
 
-
-struct Food{
-    TilePos pos;
+struct Food {
+  TilePos pos;
 };
 
-struct FoodSpawner{
-    TileMap tile_map;
-    int food_number;
+struct FoodSpawner {
+  TileMap tile_map;
+  int food_number;
 };
 
-
-auto spawn_food_system(flecs::world & world) -> flecs::system;
+auto spawn_food_system(flecs::world &world) -> flecs::system;
 auto food_to_map_system(flecs::world &world) -> flecs::system;
-
-

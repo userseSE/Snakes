@@ -67,8 +67,7 @@ auto handle_message(const json &message, flecs::iter &it) -> json {
 
   case (int)CONTROL: { // 如果是控制命令
     auto player_id = json_msg["id"].get<flecs::entity_t>(); // 获取玩家id
-    std::cout << "control:" << player_id << std::endl;
-    auto cmd = json_msg["cmd"].get<int>();            // 获取命令
+    auto cmd = json_msg["cmd"].get<int>();                  // 获取命令
     it.world().entity(player_id).set<Direction>(cmd); // 设置玩家的方向
 
     break;
@@ -89,7 +88,6 @@ auto handle_message(const json &message, flecs::iter &it) -> json {
         [&](const raylib::Rectangle &rect, const raylib::Color &color) {
           reply_msg["rect"].push_back(rect);
           reply_msg["color"].push_back(color);
-          // std::cout << reply_msg["color"] << std::endl;
         });
     break;
   }

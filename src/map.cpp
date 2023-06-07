@@ -36,7 +36,7 @@ inline auto detect_occupied_system(flecs::world &world) -> flecs::system {
 void OccupiedTilePlugin::build(flecs::world &ecs) {
   auto clear_system = clear_occupied_system(ecs);
   auto detect_system = detect_occupied_system(ecs);
-  //auto print_system = print_occupied_system(ecs);
+  // auto print_system = print_occupied_system(ecs);
   detect_system.depends_on(clear_system);
-  //print_system.depends_on(detect_system);
+  // print_system.depends_on(detect_system);
 }

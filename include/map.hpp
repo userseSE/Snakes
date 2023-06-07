@@ -13,9 +13,9 @@
 #include <utility>
 
 enum class TileType : int { EMPTY, WALL };
-struct GameMap{
-    ecs_entity_t walls;
-    ecs_entity_t foods;
+struct GameMap {
+  ecs_entity_t walls;
+  ecs_entity_t foods;
 };
 struct TileColor {
   raylib::Color color = raylib::Color::Gray();
@@ -41,7 +41,7 @@ struct PairHash {
 
 struct TileMapStorage : public std::unordered_map<std::pair<int, int>,
                                                   flecs::entity_t, PairHash> {
-  std::optional<flecs::entity_t> get_tile(int x, int y) const{
+  std::optional<flecs::entity_t> get_tile(int x, int y) const {
     const auto key = std::make_pair(x, y);
     auto it = this->find(key);
     if (it != this->end()) {
@@ -84,7 +84,7 @@ struct OccupiedTiles
   }
 };
 
-struct OccupiedTilePlugin{
-  void build(flecs::world & world);
+struct OccupiedTilePlugin {
+  void build(flecs::world &world);
 };
 using TileMapBundle = basic::Bundle<TileMap, TileMapStorage, TileSize>;

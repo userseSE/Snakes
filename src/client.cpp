@@ -14,7 +14,6 @@
 #include <stdio.h>
 #include <string>
 
-
 using json = nlohmann::json;
 
 enum { CONTROL, GRAPH, AUTH, REPLY, GRAPH_REPLY, AUTH_REPLY };
@@ -83,8 +82,6 @@ void graph_show(flecs::iter &it) {
   //  将接收到的消息解析为JSON对象
   json received_json = json::parse(buff.decompress(recv_msg.to_string_view()));
 
-  // std::cout<<received_json<<std::endl;
-
   // 从解析后的JSON对象中获取矩形和颜色信息
   if (received_json["type"] == GRAPH_REPLY) {
     std::vector<raylib::Rectangle> received_rects =
@@ -127,7 +124,6 @@ void user_verify(flecs::iter &it) {
   // 将解析后的JSON对象传递给UserDatabase，将其转换为UserDatabase对象
   ud["username"] = data["username"];
   ud["password"] = data["password"];
-  // std::cout << ud << std::endl;
 
   file.close();
   // it.world().set(ud);

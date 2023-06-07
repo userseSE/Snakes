@@ -2,13 +2,14 @@
 #include "input.hpp"
 #include "server.hpp"
 #include "system_helper.hpp"
-#include<nlohmann/json.hpp>
 #include "zmq.hpp"
 #include <memory>
+#include <nlohmann/json.hpp>
 
-class ZmqClient { 
+
+class ZmqClient {
 public:
-  explicit ZmqClient(int thread = 1)  
+  explicit ZmqClient(int thread = 1)
       : context_(thread), socket_(context_, zmq::socket_type::req) {}
   void connect(const std::string &endpoint) {
     socket_.set(zmq::sockopt::linger, 1);

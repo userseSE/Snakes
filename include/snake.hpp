@@ -7,8 +7,8 @@
 
 struct Snake {
   std::deque<flecs::entity_t> body;
-  //std::deque是一种双端队列容器，允许在其首尾两端快速插入及删除。
-  //double-ended queue
+  // std::deque是一种双端队列容器，允许在其首尾两端快速插入及删除。
+  // double-ended queue
 };
 
 struct SnakeSpawn {

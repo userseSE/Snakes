@@ -1,26 +1,25 @@
 #pragma once
 
 #include "flecs.h"
+#include "json_conversion.hpp"
+#include <nlohmann/json.hpp>
 #include <string>
 #include <zmq.hpp>
-#include <nlohmann/json.hpp>
-#include "json_conversion.hpp"
 
-
-struct ServerAddress : std::string {};    
+struct ServerAddress : std::string {};
 
 struct UserDatabase : json {};
 
 class ZmqServer {
 public:
   explicit ZmqServer(int thread = 1)
-      : context_(thread), socket_(context_, zmq::socket_type::rep) {} 
+      : context_(thread), socket_(context_, zmq::socket_type::rep) {}
   void bind(const std::string &endpoint) {
-    socket_.set(zmq::sockopt::linger, 1); 
-    socket_.bind(endpoint); 
+    socket_.set(zmq::sockopt::linger, 1);
+    socket_.bind(endpoint);
   }
   void close() { socket_.close(); }
-  auto socket() -> zmq::socket_t & { return socket_; }  
+  auto socket() -> zmq::socket_t & { return socket_; }
 
 private:
   zmq::context_t context_;
@@ -32,7 +31,7 @@ struct ZmqServerPlugin {
 
 class ZmqServerRef : public std::shared_ptr<ZmqServer> {};
 
-auto init_id_system(flecs::world &world)-> flecs::system;
+auto init_id_system(flecs::world &world) -> flecs::system;
 
 auto init_zmq_server_system(flecs::world &world) -> flecs::system;
 

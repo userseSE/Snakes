@@ -28,9 +28,9 @@ void spawn_food(flecs::iter &it, FoodSpawner *food_spawner) {
   for (int i = 0; i < it.count(); i++) {
     int count = 0;
     it.entity(i).children([&](flecs::entity_t e) { count++; });
-  
+
     if (count >= food_spawner[i].food_number) {
-      
+
       continue;
     }
     int current_food_number = count;
@@ -47,15 +47,15 @@ void spawn_food(flecs::iter &it, FoodSpawner *food_spawner) {
     }
   }
 }
-void food_to_map(flecs::iter &it, FoodSpawner *food_spawner,TileMapStorage * storage) {
+void food_to_map(flecs::iter &it, FoodSpawner *food_spawner,
+                 TileMapStorage *storage) {
   for (int i = 0; i < it.count(); i++) {
-          storage[i].clear();
-          it.entity(i).children([&](flecs::entity_t e) {  
-            auto pos = it.world().entity(e).get<TilePos>();
-            storage->set_tile( pos->x,  pos->y, e);
-          });
+    storage[i].clear();
+    it.entity(i).children([&](flecs::entity_t e) {
+      auto pos = it.world().entity(e).get<TilePos>();
+      storage->set_tile(pos->x, pos->y, e);
+    });
   }
-
 }
 auto food_to_map_system(flecs::world &world) -> flecs::system {
   auto sig = IntoSystemBuilder(food_to_map);

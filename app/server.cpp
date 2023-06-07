@@ -1,7 +1,6 @@
 #include "server.hpp"
 #include "Color.hpp"
 #include "flecs.h"
-#include "flecs/addons/cpp/mixins/pipeline/decl.hpp"
 #include "food.hpp"
 #include "input.hpp"
 #include "map.hpp"
@@ -10,13 +9,14 @@
 #include "snake.hpp"
 #include "system_helper.hpp"
 #include "utils.hpp"
+#include <fstream>
 #include <iostream>
 #include <memory>
 #include <stdio.h>
 #include <tuple>
 #include <utility>
 #include <vector>
-#include <fstream>
+
 
 using CollisionQuery = flecs::query<const Rectangle, const Color>;
 
@@ -109,29 +109,28 @@ int main(int argc, char *argv[]) {
   auto snake_system3 = move_snake_system.build(ecs);
   auto snake_system4 = update_render_snake_system.build(ecs);
   // auto draw_rect =
-  //     ecs.system<raylib::Rectangle, raylib::Color>().term_at(2).optional().iter(
+  //     ecs.system<raylib::Rectangle,
+  //     raylib::Color>().term_at(2).optional().iter(
   //         draw_rects);                            // draw rect
 
   snake_system3.interval(0.1);
   snake_system.depends_on(flecs::PreUpdate);
   snake_system3.depends_on(flecs::PreUpdate);
   snake_system4.depends_on(flecs::OnUpdate);
-  
+
   // int screenWidth = 1600;
   // int screenHeight = 900;
-  //raylib::Color textColor = raylib::Color::LightGray();
- // raylib::Window window(screenWidth, screenHeight, "贪吃蛇服务端");
-      
-
+  // raylib::Color textColor = raylib::Color::LightGray();
+  // raylib::Window window(screenWidth, screenHeight, "贪吃蛇服务端");
 
   system.depends_on(flecs::OnStart);
   ecs.set_target_fps(60);
-  //SetTargetFPS(60);
+  // SetTargetFPS(60);
 
   //--------------------------------------------------------------------------------------
 
   // Main game loop
-  while (   ecs.progress()) { // Detect window close button or ESC key
+  while (ecs.progress()) { // Detect window close button or ESC key
     // Update (ECS世界以每秒60次的速率更新)
     // ecs.progress(1.0/60);
 
@@ -140,15 +139,15 @@ int main(int argc, char *argv[]) {
     //----------------------------------------------------------------------------------
     // Draw
     //----------------------------------------------------------------------------------
-   // BeginDrawing();
+    // BeginDrawing();
 
-   // { window.ClearBackground(RAYWHITE); }
+    // { window.ClearBackground(RAYWHITE); }
 
     // std::cout << "Before ecs.progress()" << std::endl;
- 
+
     // std::cout << "After ecs.progress()" << std::endl;
 
-  //  EndDrawing();
+    //  EndDrawing();
     //----------------------------------------------------------------------------------
   }
 

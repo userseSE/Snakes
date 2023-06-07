@@ -15,8 +15,8 @@
 #include "map.hpp"
 #include "utils.hpp"
 #include <algorithm>
-#include <stdio.h>
 #include <iostream>
+#include <stdio.h>
 
 using SnakeBodyBundle =
     basic::Bundle<SnakeBody, TilePos, TileSize, raylib::Color>;
@@ -30,12 +30,10 @@ using SnakeBodyBundle =
 // 初始化蛇的身体
 void init_snake_bodies(flecs::iter &it, SnakeSpawn *snakes) {
 
-  auto snake = Snake{};                  // Snake component
+  auto snake = Snake{}; // Snake component
   // printf("init_snake_bodies\n");
   for (int i = 0; i < it.count(); i++) { // For each entity with SnakeSpawn
     auto snakedata = snakes[i];          // Get SnakeSpawn component
-
-    // std::cout<<it.system().name()<<std::endl;
 
     SnakeBodyBundle body =
         SnakeBodyBundle{                            // Create SnakeBodyBundle
@@ -186,8 +184,7 @@ void move_snake(flecs::iter &it, Snake *snakes, Direction *dirs) {
     } else {
       // generate body
       auto tail = snake.body.back(); // Get snake tail entity
-      // printf("%d %d\n",tail,head);
-      snake.body.pop_back(); // Remove tail from snake body
+      snake.body.pop_back();         // Remove tail from snake body
 
       SnakeBodyBundle body = SnakeBodyBundle{
           SnakeBody{SnakeBody::HEAD}, TilePos{new_pos}, TileSize{8, 8},

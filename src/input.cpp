@@ -43,13 +43,12 @@ inline void controller(flecs::iter &it) {
 
   auto s = handle_input();
 
-  
   if (!s.has_value()) {
-    
-    return ;
+
+    return;
   }
 
-  std::cout<<static_cast<int>(s.value())<<std::endl;
+  std::cout << static_cast<int>(s.value()) << std::endl;
 
   auto newDirection = s.value();
   auto currentDirection = it.world().get_mut<Direction>();
