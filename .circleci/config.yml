@@ -22,8 +22,8 @@ jobs:
                       git clone --quiet --depth=1 https://github.com/Microsoft/vcpkg.git
                       cd vcpkg
                       ./bootstrap-vcpkg.sh --disableMetrics
-                      vcpkg install zstd
-                      vcpkg install zeromq
+                      ./vcpkg install zstd
+                      ./vcpkg install zeromq
                       popd 
                       set -e
                       BUILD_DIR=${1:-build}
