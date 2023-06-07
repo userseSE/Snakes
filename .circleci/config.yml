@@ -9,15 +9,15 @@ jobs:
         docker:
             - image: cimg/base:current-20.04
         environment:
-            CC: gcc-12
-            CXX: g++-12
+            CC: gcc-11
+            CXX: g++-11
         steps:
             - checkout
             - run:
                   name: Install Software
                   command: |
                       sudo apt-get update
-                      sudo apt-get install -y ninja-build git unzip cmake g++-12 libstdc++-12-dev 
+                      sudo apt-get install -y ninja-build git unzip cmake g++-11 libstdc++-11-dev 
                       sudo apt install libasound2-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev libxinerama-dev
                       pushd "$HOME"
                       git clone --quiet --depth=1 https://github.com/Microsoft/vcpkg.git
