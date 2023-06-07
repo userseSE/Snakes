@@ -74,12 +74,10 @@ auto handle_message(const json &message, flecs::iter &it) -> json {
   }
 
   case (int)GRAPH: {
-    printf("prepare graph\n");
+
     // auto player_id = json_msg["id"].get<flecs::entity_t>(); //获取玩家id
     auto queryRect = it.system().get<CollisionQuery>();
 
-    // auto queryRect = it.ctx<CollisionQuery>();
-    printf("query graph\n");
     reply_msg["type"] = GRAPH_REPLY;
     reply_msg["rect"] = std::vector<raylib::Rectangle>();
     reply_msg["color"] = std::vector<raylib::Color>();
@@ -126,8 +124,6 @@ auto handle_message(const json &message, flecs::iter &it) -> json {
               .set<SnakeSpawn>(
                   SnakeSpawn{{TilePos{1, 3}, TilePos{1, 2}, TilePos{1, 1}}})
               .set<Direction>(Direction::DOWN);
-
-      // printf("%llu\n", snake_id.id());
 
       reply_msg["id"] = static_cast<int>(snake_id);
 

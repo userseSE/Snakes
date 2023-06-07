@@ -46,16 +46,11 @@ void control_cmd(flecs::iter &it) {
   auto &socket = client->socket(); // 获取socket
 
   socket.send(msg, zmq::send_flags::none); // 发送消息
-  printf("send %s\n", cmd.dump().c_str());
 
   auto recv = socket.recv(msg, zmq::recv_flags::none); // 接收消息
-
-  printf("test ctrl cmd complete\n");
 }
 
 void graph_show(flecs::iter &it) {
-
-  printf("test graph\n");
 
   // 请求服务器发送图形数据
   auto &client = *it.world().get_mut<ZmqClientRef>(); // 获取客户端
