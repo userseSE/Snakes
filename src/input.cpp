@@ -1,7 +1,6 @@
 #include "input.hpp"
 #include "flecs/addons/cpp/iter.hpp"
 #include "system_helper.hpp"
-#include <iostream>
 
 auto handle_input() -> std::optional<Direction> {
   std::optional<Direction> dir = std::nullopt;
@@ -47,8 +46,6 @@ inline void controller(flecs::iter &it) {
 
     return;
   }
-
-  std::cout << static_cast<int>(s.value()) << std::endl;
 
   auto newDirection = s.value();
   auto currentDirection = it.world().get_mut<Direction>();
