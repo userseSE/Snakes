@@ -108,13 +108,13 @@ int main(int argc, char *argv[]) {
   //--------------------------------------------------------------------------------------
   // init world
 
-  flecs::world ecs;
+  flecs::world ecs;   // ecs world
 
-  ZmqClientPlugin client;
+  ZmqClientPlugin client; // zmq client
 
-  client.build(ecs);
+  client.build(ecs);    // build plugin
 
-  ecs.set<ZmqClientRef>(ZmqClientRef{std::make_shared<ZmqClient>(2)});
+  ecs.set<ZmqClientRef>(ZmqClientRef{std::make_shared<ZmqClient>(2)});  // set client
 
   std::string ip = init_ip(ecs);
   ecs.set<ServerAddress>({ip});

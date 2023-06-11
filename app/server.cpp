@@ -27,7 +27,7 @@ void setup(flecs::world &ecs) {
       TileMapBundle{TileMap{tilemap}, TileMapStorage{}, TileSize{8, 8}};
   ecs.set(OccupiedTiles{});
   auto food_spawn =
-      ecs.entity().set(FoodSpawner{tilemap, 5000}).set(TileMapStorage{});
+      ecs.entity().set(FoodSpawner{tilemap, 3}).set(TileMapStorage{});
   auto entity = a.spawn(ecs);
 
   gamemap.walls = entity;
@@ -95,15 +95,16 @@ int main(int argc, char *argv[]) {
 
   IntoSystemBuilder builder(init_snake_bodies);   // init snake
   IntoSystemBuilder builder2(init_snake_graphic); // init snake graphic
-  IntoSystemBuilder move_snake_system(move_snake);
-  IntoSystemBuilder update_render_snake_system(update_render_snake);
-  auto spawn_food = spawn_food_system(ecs);
-  auto map_food = food_to_map_system(ecs);
-  spawn_food.depends_on(flecs::PostUpdate);
-  map_food.depends_on(spawn_food);
+  IntoSystemBuilder move_snake_system(move_snake);  // move snake
+  IntoSystemBuilder update_render_snake_system(update_render_snake);  // update and render
 
-  p1.build(ecs);
-  auto snake_system = builder.build(ecs);
+  auto spawn_food = spawn_food_system(ecs); // spawn food
+  auto map_food = food_to_map_system(ecs);  // map food
+  spawn_food.depends_on(flecs::PostUpdate); // spawn food depends on postupdate
+  map_food.depends_on(spawn_food);        // map food depends on spawn food
+
+  p1.build(ecs);                          // build occupied tile plugin
+  auto snake_system = builder.build(ecs); // build snake system
   snake_system.set_name("init_system_bodies");
   auto snake_system2 = builder2.build(ecs);
   auto snake_system3 = move_snake_system.build(ecs);
