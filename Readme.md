@@ -11,6 +11,7 @@
   - [Screenshots](#screenshots)
   - [Setup](#setup)
   - [Usage](#usage)
+  - [ZeroMQ C/S Pattern:](#zeromq-cs-pattern)
   - [Code examples:](#code-examples)
   - [Room for Improvement](#room-for-improvement)
 
@@ -77,6 +78,14 @@ Here is a use case of the project:
 
 Single-player game is also surported, and can be accessed by running `Snakes\bin\test_sp.exe`
 
+## ZeroMQ C/S Pattern:   
+ZeroMQ (ZMQ) is a general-purpose messaging library that provides various communication patterns including client-server, publish-subscribe, and push-pull. ZeroMQ provides client-server mode communication by implementing the ZeroMQ Message Transfer Protocol (ZMTP) on top of the TCP/IP protocol. 
+1. Transport Layer Selection: ZMQ utilizes the underlying TCP/IP protocol as the foundation for message transmission. 
+2. Socket Type Selection: In the client-server pattern, the server-side typically uses a ZMQ_REP (Reply) socket type, while the client-side typically uses a ZMQ_REQ (Request) socket type. These socket types define the message transport and ordering.
+3. Connection Establishment: The server-side binds the socket to a specified address and port using the zmq_bind() function to listen for connection requests from clients. The client-side connects the socket to the server's address and port using the zmq_connect() function.
+4. Message Exchange: The client-side sends request messages to the server-side using the zmq_send() function, and the server-side receives the request messages using the zmq_recv() function. Then, the server-side can process the request, generate a response message, and send it to the client-side using the zmq_send() function. The client-side receives the response message using the zmq_recv() function.
+5. ZMTP Protocol: ZMQ utilizes the ZeroMQ Message Transfer Protocol (ZMTP) to define message encapsulation, frame structure, and other protocol details. ZMTP provides features such as frame separation, message type identification, and message security. By implementing ZMTP on top of the TCP protocol, ZMQ can handle complex tasks such as message dispatching, routing, and transport, resulting in more reliable and efficient communication.
+
 ## Code examples:
 - The server utilizes an asynchronous and non-blocking approach.
 ```c++
@@ -130,7 +139,7 @@ void control_cmd(flecs::iter &it) {
   //blocking (if no message, the thread will hang-out to wait the reply message)
 }
 ```
-- The generation of plugin (function->system->build)
+***The generation of plugin (function->system->build)***
 - Server plugin: 
 1. the following four systems, which are concerned with interations and message deliveries with the client, are created in server's plugin.
 ```c++
@@ -145,12 +154,12 @@ void ZmqServerPlugin::build(flecs::world &world) {
   // Create a system that receives messages and sends replies, and specify that it runs in the flecs::PreUpdate phase.
 }
 ```
-2. Then, in the main function of server, an object of `ZmqServerPlugin` is created, and its `build` operation is called to add it to the flecs world.
+1. Then, in the main function of server, an object of `ZmqServerPlugin` is created, and its `build` operation is called to add it to the flecs world.
 ```c++
 ZmqServerPlugin server;
 server.build(ecs);
 ```
-3. Apart from those systems in `ZmqServerPlugin`, some general plugins concerning the logic of the snake game are created in the main function to complete the generation and calculation of the game graph.
+1. Apart from those systems in `ZmqServerPlugin`, some general plugins concerning the logic of the snake game are created in the main function to complete the generation and calculation of the game graph.
 ```c++
 OccupiedTilePlugin p1;
 auto system =
