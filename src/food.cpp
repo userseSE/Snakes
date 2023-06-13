@@ -70,8 +70,7 @@ inline TilePos random_food_pos(const FoodSpawner &food_spawner,
 
   std::random_device rd;  // 随机数种子
   std::mt19937 gen(rd()); // 随机数生成器
-  std::uniform_int_distribution<> dis_x(0, food_spawner.tile_map.width -
-                                               1); // 均匀分布
+  std::uniform_int_distribution<> dis_x(0, food_spawner.tile_map.width - 1); // 均匀分布
   std::uniform_int_distribution<> dis_y(0, food_spawner.tile_map.height - 1);
 
   TilePos food_pos;

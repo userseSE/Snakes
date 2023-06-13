@@ -69,7 +69,7 @@ All configuration information is in Json files, so to run the server we need to 
 - key.json: the user database which stores the list of users' account and key
 
 and to run the client we need to configure:
-- config_client.json: the ip and port of client which meet rules of ZMQ bind address
+- config_client.json: the ip and port of server which meet rules of ZMQ bind address, so that the client can find the server.
 - clientInfo.json: the account and key of a user
   
 Here is a use case of the project:
