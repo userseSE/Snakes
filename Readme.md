@@ -65,16 +65,18 @@ The build proccess on Linux can be found in continous integration file `Snakes/.
 
 ## Usage
 All configuration information is in Json files, so to run the server we need to configure:
-- config_server.json: the ip and port of server which meet rules of ZMQ bind address
-- key.json: the user database which stores the list of users' account and key
+- config_server.json: the ip and port of the server which meet rules of ZMQ bind address
+- key.json: the user database which stores the list of users' accounts and keys
 
 and to run the client we need to configure:
-- config_client.json: the ip and port of server which meet rules of ZMQ bind address, so that the client can find the server.
-- clientInfo.json: the account and key of a user
-  
+- config_client.json: the ip and port of the server which meet rules of ZMQ bind address, so that the client can find the server.   
+- clientInfo.json: the account and key of a user    
+
 Here is a use case of the project:
 - run the server first `Snakes\bin\test_server.exe`
-- run one client or multiple clients, like `Snakes\bin\test_client.exe` and `Snakes\test_client2\test_client2.exe`, and play with your friends.
+- run one client or multiple clients, like `Snakes\bin\test_client.exe` and `Snakes\test_client2\test_client2.exe`, and play with your friends.   
+  
+***If you want to play the game on diffrent computers with your friends (the server and clients on different devices), you need to ensure that the devices are in the same LAN and modify the ip value as the server's ip address in `config_server.json` and all `config_client.json` files.***
 
 Single-player game is also surported, and can be accessed by running `Snakes\bin\test_sp.exe`
 
@@ -154,12 +156,12 @@ void ZmqServerPlugin::build(flecs::world &world) {
   // Create a system that receives messages and sends replies, and specify that it runs in the flecs::PreUpdate phase.
 }
 ```
-1. Then, in the main function of server, an object of `ZmqServerPlugin` is created, and its `build` operation is called to add it to the flecs world.
+2. Then, in the main function of server, an object of `ZmqServerPlugin` is created, and its `build` operation is called to add it to the flecs world.
 ```c++
 ZmqServerPlugin server;
 server.build(ecs);
 ```
-1. Apart from those systems in `ZmqServerPlugin`, some general plugins concerning the logic of the snake game are created in the main function to complete the generation and calculation of the game graph.
+3. Apart from those systems in `ZmqServerPlugin`, some general plugins concerning the logic of the snake game are created in the main function to complete the generation and calculation of the game graph.
 ```c++
 OccupiedTilePlugin p1;
 auto system =
@@ -209,10 +211,10 @@ void ZmqClientPlugin::build(flecs::world &world) {
 ## Room for Improvement
 
 Room for improvement:
-- An asynchronuous and non-blocking method can be used for the client: Observe lag can be observed in the client during the game, which mostly due to the utilization of synchronuous and blocking method.
+- An asynchronuous and non-blocking method can be used for the client: Observe lag can be observed in the clients during the game, which mostly due to the utilization of synchronuous and blocking method.
 - Only changes should be delivered by the server, rather than all tiles of the graph are sent in every time of communication, which would improve the efficiency of the game. 
 
 To do:
 - To do collision detections between snakes and walls, and events after collision.
-- To do a log in function and the concerned web page, as user database and user information of the client are accessed in json files now.
+- To do a log in function and the concerned web page, as user database and user information of the clients are accessed in json files now.
 
